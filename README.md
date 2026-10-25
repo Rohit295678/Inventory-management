@@ -70,20 +70,33 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | POST | `/api/mobile/register` | `{ name?, email, password }` → `{ token, user }` |
 | POST | `/api/mobile/login` | `{ email, password }` → `{ token, user }` |
 | GET | `/api/mobile/me` | Validate a stored token |
-| GET/POST | `/api/items` | List (with `stock`) / create `{ name, category, unit, details? }` |
+| GET/POST | `/api/item-types` | The user's own types of goods (A-Z) / create `{ name }` (409 if it exists, any case) |
+| GET/POST | `/api/items` | List (with `stock` and `bought`: weight, total cost, avg price/kg) / create `{ name, typeId, unit, details? }` |
 | PATCH/DELETE | `/api/items?id=` | Delete is refused while the item is on a bill |
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |
 | GET | `/api/transactions?type=&from=&to=&partyId=` | → `{ transactions, summary }` |
-| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg?, totalCost? }] }` |
+| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg }] }` |
 | DELETE | `/api/transactions?id=` | |
 | GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf` |
 
 **Pricing rule** (`src/lib/pricing.ts`, shared by server and form): items counted
 in `kg` weigh their quantity; other units (packet, bag, ...) need `weightPerUnitKg`,
 the weight of ONE unit, so total weight = `quantity × weightPerUnitKg`.
-If `totalCost` is sent it wins and `ratePerKg` is derived, otherwise
-`totalCost = ratePerKg × weightPerUnitKg × quantity`.
+Price is always per kg: `totalCost = ratePerKg × weightPerUnitKg × quantity`.
+
+## Database changes that `db:push` can't do safely
+
+Schema changes that would lose data (e.g. turning a text column into a link
+to another table) ship as idempotent SQL in `prisma/manual-migrations/`, the
+same approach as MoneyMate. Run them in date order **before** `db:push`:
+
+```bash
+npm run db:sql -- prisma/manual-migrations/2026-10-25-item-types.sql
+npm run db:push   # should now say "already in sync"
+```
+
+Each script is safe to run more than once.
 
 ## Theme
 

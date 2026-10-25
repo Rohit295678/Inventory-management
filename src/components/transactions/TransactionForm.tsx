@@ -10,12 +10,13 @@ import type { ItemDTO, PartyDTO } from "@/lib/types";
 import { LineEditor, previewLine, toPayload, type LineDraft } from "@/components/transactions/LineEditor";
 import { Field } from "@/components/ui/Field";
 import { Alert } from "@/components/ui/PageHeader";
+import { Loading } from "@/components/ui/Spinner";
 import { buttonClass, cardClass, inputClass } from "@/components/ui/styles";
 
 type Props = {
   type: TxType;
-  items: ItemDTO[];
-  parties: PartyDTO[];
+  items: ItemDTO[] | null; // null = still loading
+  parties: PartyDTO[] | null;
   onSaved: () => void;
   onCancel: () => void;
 };
@@ -28,11 +29,28 @@ const blankLine = (): LineDraft => ({
   itemId: "",
   quantity: "",
   weightPerUnitKg: "",
-  priceMode: "rate",
-  price: "",
+  ratePerKg: "",
 });
 
 export function TransactionForm({ type, items, parties, onSaved, onCancel }: Props) {
+  // Don't claim "add an item first" while the lists are still on their way.
+  if (!items || !parties) {
+    return (
+      <div className={`${cardClass} mb-5`}>
+        <Loading label="Loading items and people…" />
+      </div>
+    );
+  }
+  return <LoadedForm type={type} items={items} parties={parties} onSaved={onSaved} onCancel={onCancel} />;
+}
+
+function LoadedForm({
+  type,
+  items,
+  parties,
+  onSaved,
+  onCancel,
+}: Omit<Props, "items" | "parties"> & { items: ItemDTO[]; parties: PartyDTO[] }) {
   const copy = TX_COPY[type];
 
   const [partyId, setPartyId] = useState("");

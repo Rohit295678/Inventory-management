@@ -5,14 +5,21 @@ import type { PartyKind, TxType } from "@/lib/domain";
 
 export type Stock = { quantity: number; weightKg: number };
 
+// What was paid to suppliers for an item, across all purchases.
+export type Bought = Stock & { totalCost: number; avgRatePerKg: number };
+
+export type ItemStats = { stock: Stock; bought: Bought };
+
+// The user's own "type of goods" (Rice, Pulse, ...). Per user, not global.
+export type ItemTypeDTO = { id: string; name: string };
+
 export type ItemDTO = {
   id: string;
   name: string;
-  category: string;
+  type: ItemTypeDTO;
   unit: string;
   details: string | null;
-  stock: Stock;
-};
+} & ItemStats;
 
 export type PartyDTO = {
   id: string;

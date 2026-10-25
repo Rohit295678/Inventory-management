@@ -11,6 +11,7 @@ import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
 import { Field } from "@/components/ui/Field";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
+import { Loading } from "@/components/ui/Spinner";
 import { buttonClass, chipClass, inputClass } from "@/components/ui/styles";
 
 type Range = { from: string; to: string };
@@ -89,8 +90,8 @@ export function TransactionsView({ type }: { type: TxType }) {
       {showForm && (
         <TransactionForm
           type={type}
-          items={items.data ?? []}
-          parties={parties.data ?? []}
+          items={items.data}
+          parties={parties.data}
           onCancel={() => setShowForm(false)}
           onSaved={() => {
             setShowForm(false);
@@ -137,7 +138,7 @@ export function TransactionsView({ type }: { type: TxType }) {
       {txs.data && <SummaryPanel type={type} summary={txs.data.summary} />}
 
       {txs.loading && !txs.data ? (
-        <EmptyState>Loading…</EmptyState>
+        <Loading label={`Loading ${copy.title.toLowerCase()}…`} />
       ) : groups.length === 0 ? (
         <EmptyState>No {copy.title.toLowerCase()} for this period.</EmptyState>
       ) : (

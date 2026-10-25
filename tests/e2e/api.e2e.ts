@@ -44,19 +44,48 @@ test("auth: register, login, me, reject bad token", async () => {
   assert.equal(bad.headers.get("access-control-allow-origin"), "*");
 });
 
-test("items: create, reject duplicate & invalid, update", async () => {
-  const rice = await call("POST", "/api/items", { name: "Basmati Rice", category: "Rice", unit: "packet", details: "25kg bag" });
+test("item types: per-user list, case-insensitive duplicates, sorted", async () => {
+  const rice = await call("POST", "/api/item-types", { name: "Rice" });
   assert.equal(rice.status, 201);
+  ids.typeRice = rice.data.id;
+  ids.typePulse = (await call("POST", "/api/item-types", { name: "Pulse" })).data.id;
+
+  assert.equal((await call("POST", "/api/item-types", { name: "rice" })).status, 409);
+  assert.equal((await call("POST", "/api/item-types", { name: "  " })).status, 400);
+
+  const list = await call("GET", "/api/item-types");
+  assert.deepEqual(list.data.map((t: { name: string }) => t.name), ["Pulse", "Rice"]);
+});
+
+test("item types: another user can't see or use mine", async () => {
+  const mine = token;
+  token = (await call("POST", "/api/mobile/register", { email: `e2e-other-${Date.now()}@example.com`, password: "secret123" }, false)).data.token;
+  try {
+    assert.deepEqual((await call("GET", "/api/item-types")).data, []);
+    const steal = await call("POST", "/api/items", { name: "Sneaky", typeId: ids.typeRice, unit: "kg" });
+    assert.equal(steal.status, 400);
+    // ...and the same name is fine for them: lists are per user, not global.
+    assert.equal((await call("POST", "/api/item-types", { name: "Rice" })).status, 201);
+  } finally {
+    token = mine;
+  }
+});
+
+test("items: create, reject duplicate & invalid, update", async () => {
+  const rice = await call("POST", "/api/items", { name: "Basmati Rice", typeId: ids.typeRice, unit: "packet", details: "25kg bag" });
+  assert.equal(rice.status, 201);
+  assert.deepEqual(rice.data.type, { id: ids.typeRice, name: "Rice" });
   ids.rice = rice.data.id;
 
-  const dal = await call("POST", "/api/items", { name: "Toor Dal", category: "Pulse", unit: "kg" });
+  const dal = await call("POST", "/api/items", { name: "Toor Dal", typeId: ids.typePulse, unit: "kg" });
   ids.dal = dal.data.id;
 
-  assert.equal((await call("POST", "/api/items", { name: "Basmati Rice", category: "Rice", unit: "kg" })).status, 409);
-  assert.equal((await call("POST", "/api/items", { name: "", category: "Rice", unit: "kg" })).status, 400);
-  assert.equal((await call("POST", "/api/items", { name: "X", category: "Rice", unit: "tonne" })).status, 400);
+  assert.equal((await call("POST", "/api/items", { name: "Basmati Rice", typeId: ids.typeRice, unit: "kg" })).status, 409);
+  assert.equal((await call("POST", "/api/items", { name: "", typeId: ids.typeRice, unit: "kg" })).status, 400);
+  assert.equal((await call("POST", "/api/items", { name: "X", typeId: ids.typeRice, unit: "tonne" })).status, 400);
+  assert.equal((await call("POST", "/api/items", { name: "X", unit: "kg" })).status, 400); // no type
 
-  const upd = await call("PATCH", `/api/items?id=${ids.dal}`, { name: "Toor Dal", category: "Pulse", unit: "kg", details: "Grade A" });
+  const upd = await call("PATCH", `/api/items?id=${ids.dal}`, { name: "Toor Dal", typeId: ids.typePulse, unit: "kg", details: "Grade A" });
   assert.equal(upd.data.details, "Grade A");
 });
 
@@ -68,19 +97,19 @@ test("parties: create supplier & customer, filter by kind", async () => {
   assert.deepEqual(suppliers.data.map((p: { name: string }) => p.name), ["Ramesh Traders"]);
 });
 
-test("purchases: multi-item bill with both price formats", async () => {
+test("purchases: multi-item bill priced per kg", async () => {
   const res = await call("POST", "/api/transactions", {
     type: "PURCHASE",
     partyId: ids.supplier,
     date: today,
     lines: [
-      { itemId: ids.rice, quantity: 50, weightPerUnitKg: 25, totalCost: 62500 }, // 50 packets x 25 kg, total given
+      { itemId: ids.rice, quantity: 50, weightPerUnitKg: 25, ratePerKg: 50 }, // 50 x 25 kg x 50/kg
       { itemId: ids.dal, quantity: 20, ratePerKg: 90 }, // 20 kg @ 90/kg
     ],
   });
   assert.equal(res.status, 201, JSON.stringify(res.data));
   assert.equal(res.data.totalAmount, 64300);
-  assert.equal(res.data.lines[0].ratePerKg, 50);
+  assert.equal(res.data.lines[0].totalCost, 62500);
   assert.equal(res.data.lines[0].weightPerUnitKg, 25);
   assert.equal(res.data.lines[0].weightKg, 1250);
   assert.equal(res.data.lines[1].totalCost, 1800);
@@ -95,6 +124,8 @@ test("transactions: business-rule rejections", async () => {
   assert.equal((await call("POST", "/api/transactions", { ...base, lines: [{ itemId: ids.rice, quantity: 1, ratePerKg: 1 }] })).status, 400);
   // no price at all
   assert.equal((await call("POST", "/api/transactions", { ...base, lines: [{ itemId: ids.dal, quantity: 1 }] })).status, 400);
+  // total cost instead of price per kg is no longer accepted
+  assert.equal((await call("POST", "/api/transactions", { ...base, lines: [{ itemId: ids.dal, quantity: 1, totalCost: 100 }] })).status, 400);
   // empty bill
   assert.equal((await call("POST", "/api/transactions", { ...base, lines: [] })).status, 400);
 });
@@ -112,6 +143,10 @@ test("sales: sell part of the stock, stock updates", async () => {
   const items = await call("GET", "/api/items");
   const rice = items.data.find((i: { id: string }) => i.id === ids.rice);
   assert.deepEqual(rice.stock, { quantity: 40, weightKg: 1000 });
+  // What was paid to suppliers (sales don't count here).
+  assert.deepEqual(rice.bought, { quantity: 50, weightKg: 1250, totalCost: 62500, avgRatePerKg: 50 });
+  const dal = items.data.find((i: { id: string }) => i.id === ids.dal);
+  assert.deepEqual(dal.bought, { quantity: 20, weightKg: 20, totalCost: 1800, avgRatePerKg: 90 });
 });
 
 test("daily view: today's purchases summary", async () => {

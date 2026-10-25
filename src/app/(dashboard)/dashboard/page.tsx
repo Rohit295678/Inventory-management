@@ -6,6 +6,7 @@ import { TX_COPY, todayISO, type TxType } from "@/lib/domain";
 import { formatDate, formatKg, formatMoney, formatQty, plural } from "@/lib/format";
 import type { ItemDTO, TransactionsResponse } from "@/lib/types";
 import { Alert, PageHeader } from "@/components/ui/PageHeader";
+import { InlineLoading } from "@/components/ui/Spinner";
 import { buttonClass, cardClass } from "@/components/ui/styles";
 
 // Buy and sell get distinct badge colours so they're told apart at a glance.
@@ -30,10 +31,18 @@ function TodayCard({ type, today }: { type: TxType; today: string }) {
         </h2>
       </div>
       <Alert message={error} />
-      <p className="text-3xl font-bold text-slate-900 mt-3">{data ? formatMoney(data.summary.totalAmount) : "…"}</p>
-      <p className="text-sm text-slate-600">
-        {data ? `${plural(data.summary.bills, "bill")} · ${formatKg(data.summary.totalWeightKg)}` : " "}
-      </p>
+      {!data && !error ? (
+        <InlineLoading className="mt-3" />
+      ) : (
+        data && (
+          <>
+            <p className="text-3xl font-bold text-slate-900 mt-3">{formatMoney(data.summary.totalAmount)}</p>
+            <p className="text-sm text-slate-600">
+              {plural(data.summary.bills, "bill")} · {formatKg(data.summary.totalWeightKg)}
+            </p>
+          </>
+        )
+      )}
       {data && data.summary.byItem.length > 0 && (
         <ul className="mt-3 text-sm divide-y divide-slate-100">
           {data.summary.byItem.map((i) => (

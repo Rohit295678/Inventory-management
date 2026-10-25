@@ -12,6 +12,7 @@
     "db:start": "node scripts/db-start.mjs",
     "db:stop": "pg_ctl -D .pgdata stop",
     "db:push": "prisma db push",
+    "db:sql": "prisma db execute --file",
     "db:migrate": "prisma migrate deploy",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
     "test:api": "node --test --test-concurrency=1 --experimental-strip-types tests/e2e/api.e2e.ts",

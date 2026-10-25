@@ -2,6 +2,7 @@ import { formatKg, formatMoney, formatQty, plural } from "@/lib/format";
 import { TX_COPY, type TxType } from "@/lib/domain";
 import type { Summary } from "@/lib/types";
 import { cardClass } from "@/components/ui/styles";
+import { StatTiles } from "@/components/ui/StatTiles";
 
 // Totals for the current filter: grand total, per item, per person.
 export function SummaryPanel({ type, summary }: { type: TxType; summary: Summary }) {
@@ -14,14 +15,7 @@ export function SummaryPanel({ type, summary }: { type: TxType; summary: Summary
 
   return (
     <section aria-label="Summary" className="space-y-3 mb-5">
-      <dl className="grid grid-cols-3 gap-2">
-        {stats.map((s) => (
-          <div key={s.label} className={`${cardClass} p-3`}>
-            <dt className="text-xs text-slate-600">{s.label}</dt>
-            <dd className="text-base sm:text-xl font-bold text-slate-900 break-words">{s.value}</dd>
-          </div>
-        ))}
-      </dl>
+      <StatTiles stats={stats} />
 
       {summary.byItem.length > 0 && (
         <div className={`${cardClass} overflow-x-auto`}>

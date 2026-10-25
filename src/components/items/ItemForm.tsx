@@ -6,15 +6,15 @@ import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
 import { Alert } from "@/components/ui/PageHeader";
 import { buttonClass, cardClass, inputClass } from "@/components/ui/styles";
+import { TypeSelect } from "@/components/items/TypeSelect";
 
 type Props = {
   item?: ItemDTO; // present = edit mode
-  categories: string[];
   onSaved: () => void;
   onCancel: () => void;
 };
 
-export function ItemForm({ item, categories, onSaved, onCancel }: Props) {
+export function ItemForm({ item, onSaved, onCancel }: Props) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +23,7 @@ export function ItemForm({ item, categories, onSaved, onCancel }: Props) {
     const form = new FormData(e.currentTarget);
     const body = {
       name: form.get("name"),
-      category: form.get("category"),
+      typeId: form.get("typeId"),
       unit: form.get("unit"),
       details: form.get("details"),
     };
@@ -44,19 +44,7 @@ export function ItemForm({ item, categories, onSaved, onCancel }: Props) {
       <Alert message={error} />
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Item name" name="name" defaultValue={item?.name} placeholder="e.g. Basmati Rice" required />
-        <Field
-          label="Type of goods"
-          name="category"
-          defaultValue={item?.category}
-          placeholder="e.g. Rice, Pulse, Oil"
-          list="item-categories"
-          required
-        />
-        <datalist id="item-categories">
-          {categories.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
+        <TypeSelect defaultTypeId={item?.type.id} />
         <Field label="Counted in" hint="How you count it on a bill. Price is always per kg.">
           {(id) => (
             <select id={id} name="unit" defaultValue={item?.unit ?? "kg"} className={inputClass}>

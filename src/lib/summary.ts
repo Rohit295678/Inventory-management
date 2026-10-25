@@ -1,4 +1,4 @@
-import { round2 } from "./pricing.ts";
+import { avgRatePerKg, round2, round3 } from "./pricing.ts";
 import type { ItemSummary, PartySummary, Summary, TransactionDTO } from "./types.ts";
 
 // Pure roll-up of a list of bills: grand totals + per-item + per-person.
@@ -45,16 +45,16 @@ export function summarize(transactions: ReadonlyArray<TransactionDTO>): Summary 
   const items = [...byItem.values()].map((i) => ({
     ...i,
     quantity: round2(i.quantity),
-    weightKg: round2(i.weightKg),
+    weightKg: round3(i.weightKg),
     totalCost: round2(i.totalCost),
-    avgRatePerKg: i.weightKg > 0 ? round2(i.totalCost / i.weightKg) : 0,
+    avgRatePerKg: avgRatePerKg(i.totalCost, i.weightKg),
   }));
   const parties = [...byParty.values()].map((p) => ({ ...p, totalAmount: round2(p.totalAmount) }));
 
   return {
     bills: transactions.length,
     totalAmount: round2(totalAmount),
-    totalWeightKg: round2(totalWeightKg),
+    totalWeightKg: round3(totalWeightKg),
     byItem: items.sort((a, b) => b.totalCost - a.totalCost),
     byParty: parties.sort((a, b) => b.totalAmount - a.totalAmount),
   };

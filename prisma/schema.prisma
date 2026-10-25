@@ -20,26 +20,44 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
 
   items        Item[]
+  itemTypes    ItemType[]
   parties      Party[]
   transactions Transaction[]
 
   @@map("users")
 }
 
-// A kind of goods the user stocks, e.g. "Basmati Rice" (category "Rice").
+// The user's own list of "types of goods" (Rice, Pulse, Oil, ...).
+// Per user, not global: each shop builds its own list.
+model ItemType {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items Item[]
+
+  @@unique([userId, name])
+  @@map("item_types")
+}
+
+// A kind of goods the user stocks, e.g. "Basmati Rice" of type "Rice".
 model Item {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   name      String
-  category  String // "type of goods": Rice, Pulse, Oil, ...
+  typeId    String   @map("type_id")
   unit      String   @default("kg") // see UNITS in src/lib/pricing.ts
   details   String?
   createdAt DateTime @default(now()) @map("created_at")
 
   user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type  ItemType          @relation(fields: [typeId], references: [id], onDelete: NoAction)
   lines TransactionLine[]
 
   @@unique([userId, name])
+  @@index([typeId])
   @@map("items")
 }
 

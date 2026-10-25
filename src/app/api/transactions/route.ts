@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 }
 
 // POST /api/transactions
-// { type, partyId, date, note?, lines: [{ itemId, quantity, weightKg?, ratePerKg?, totalCost? }] }
+// { type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg }] }
 // Each line needs ratePerKg OR totalCost; the server fills in the other.
 export async function POST(req: Request) {
   const userId = await getUserId(req);

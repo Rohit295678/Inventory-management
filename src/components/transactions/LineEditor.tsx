@@ -4,17 +4,14 @@ import { formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import { priceLine, PricingError, type PricedLine } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
-import { chipClass, inputClass } from "@/components/ui/styles";
-
-export type PriceMode = "rate" | "total";
+import { inputClass } from "@/components/ui/styles";
 
 export type LineDraft = {
   key: number;
   itemId: string;
   quantity: string;
   weightPerUnitKg: string;
-  priceMode: PriceMode;
-  price: string;
+  ratePerKg: string;
 };
 
 const num = (s: string) => (s.trim() === "" ? null : Number(s));
@@ -25,8 +22,7 @@ export function toPayload(line: LineDraft) {
     itemId: line.itemId,
     quantity: num(line.quantity) ?? 0,
     weightPerUnitKg: num(line.weightPerUnitKg),
-    ratePerKg: line.priceMode === "rate" ? num(line.price) : null,
-    totalCost: line.priceMode === "total" ? num(line.price) : null,
+    ratePerKg: num(line.ratePerKg),
   };
 }
 
@@ -82,7 +78,7 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
               <option value="">Choose…</option>
               {items.map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.name} ({i.category})
+                  {i.name} ({i.type.name})
                 </option>
               ))}
             </select>
@@ -114,32 +110,15 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
       </div>
 
       <div className="grid gap-3 grid-cols-2 mt-3 items-end">
-        <div role="radiogroup" aria-label={`Price type for item ${index + 1}`} className="col-span-2 flex gap-2">
-          {(["rate", "total"] as const).map((mode) => (
-            <label
-              key={mode}
-              className={`${chipClass(line.priceMode === mode)} flex-1 flex items-center justify-center cursor-pointer has-focus-visible:outline-3 has-focus-visible:outline-brand-600 has-focus-visible:outline-offset-2`}
-            >
-              <input
-                type="radio"
-                className="sr-only"
-                name={`price-mode-${line.key}`}
-                checked={line.priceMode === mode}
-                onChange={() => onChange({ priceMode: mode })}
-              />
-              {mode === "rate" ? "Price per kg" : "Total cost"}
-            </label>
-          ))}
-        </div>
         <Field
-          label={line.priceMode === "rate" ? "Price per kg (₹)" : "Total cost (₹)"}
+          label="Price per kg (₹)"
           className="col-span-2 sm:col-span-1"
           type="number"
           inputMode="decimal"
           min="0"
           step="any"
-          value={line.price}
-          onChange={(e) => onChange({ price: e.target.value })}
+          value={line.ratePerKg}
+          onChange={(e) => onChange({ ratePerKg: e.target.value })}
           required
         />
         <div className="col-span-2 sm:col-span-1 text-sm text-slate-700 sm:min-h-11 flex flex-col justify-center" aria-live="polite">

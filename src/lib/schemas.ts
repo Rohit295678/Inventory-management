@@ -24,9 +24,13 @@ export const credentialsSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters").max(200),
 });
 
+export const itemTypeSchema = z.object({
+  name: z.string().trim().min(1, "Type name is required").max(60),
+});
+
 export const itemSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
-  category: z.string().trim().min(1, "Type of goods is required").max(60),
+  typeId: z.string().min(1, "Pick a type of goods"),
   unit: z.enum(UNITS),
   details: optionalText(500),
 });
@@ -42,8 +46,7 @@ export const lineSchema = z.object({
   itemId: z.string().min(1, "Pick an item"),
   quantity: z.number().positive("Quantity must be greater than 0"),
   weightPerUnitKg: optionalNumber,
-  ratePerKg: optionalNumber,
-  totalCost: optionalNumber,
+  ratePerKg: z.number().positive("Price per kg must be greater than 0"),
 });
 
 export const transactionSchema = z.object({

@@ -7,6 +7,7 @@ import { PARTY_KIND_LABELS, TX_COPY, type PartyKind } from "@/lib/domain";
 import type { PartyDTO } from "@/lib/types";
 import { PartyForm } from "@/components/parties/PartyForm";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
+import { Loading } from "@/components/ui/Spinner";
 import { buttonClass, cardClass, chipClass } from "@/components/ui/styles";
 
 const TABS: { kind: PartyKind | "ALL"; label: string }[] = [
@@ -80,7 +81,7 @@ export default function PartiesPage() {
       </div>
 
       {loading && !parties ? (
-        <EmptyState>Loading…</EmptyState>
+        <Loading label="Loading people…" />
       ) : !parties?.length ? (
         <EmptyState>No one here yet. Add the people you trade with.</EmptyState>
       ) : (

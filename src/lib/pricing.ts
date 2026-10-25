@@ -9,7 +9,6 @@ export type LineInput = {
   unit: string;
   weightPerUnitKg?: number | null; // e.g. 25 for a 25 kg packet; ignored for "kg"
   ratePerKg?: number | null;
-  totalCost?: number | null;
 };
 
 export type PricedLine = {
@@ -37,14 +36,12 @@ const isPositive = (n: number | null | undefined): n is number =>
   typeof n === "number" && Number.isFinite(n) && n > 0;
 
 /**
- * Work out total weight and whichever price the user didn't type.
+ * Work out total weight and total cost from the price per kg.
  *
  * - "kg" items weigh exactly their quantity.
  * - Other units (packet, bag, ...) need the weight of ONE unit:
  *     total weight = quantity x weightPerUnitKg
- * - Price per kg given:  totalCost = ratePerKg x weightPerUnitKg x quantity
- * - Total cost given:    ratePerKg = totalCost / total weight
- *   (if both are sent, totalCost wins: it's the money that changed hands)
+ * - totalCost = ratePerKg x weightPerUnitKg x quantity
  *
  * Money is rounded only at the end, from the unrounded weight.
  */
@@ -57,16 +54,22 @@ export function priceLine(input: LineInput): PricedLine {
   if (!byKg && !isPositive(weightPerUnitKg)) {
     throw new PricingError(`Weight per ${unit} (kg) must be greater than 0`);
   }
-  const exactWeight = byKg ? quantity : quantity * weightPerUnitKg!;
-  const base = { quantity, unit, weightPerUnitKg: weightPerUnitKg ?? null, weightKg: round3(exactWeight) };
+  if (!isPositive(input.ratePerKg)) throw new PricingError("Price per kg must be greater than 0");
 
-  if (isPositive(input.totalCost)) {
-    return { ...base, totalCost: round2(input.totalCost), ratePerKg: round2(input.totalCost / exactWeight) };
-  }
-  if (isPositive(input.ratePerKg)) {
-    return { ...base, ratePerKg: round2(input.ratePerKg), totalCost: round2(input.ratePerKg * exactWeight) };
-  }
-  throw new PricingError("Enter either the price per kg or the total cost");
+  const exactWeight = byKg ? quantity : quantity * weightPerUnitKg!;
+  return {
+    quantity,
+    unit,
+    weightPerUnitKg: weightPerUnitKg ?? null,
+    weightKg: round3(exactWeight),
+    ratePerKg: round2(input.ratePerKg),
+    totalCost: round2(input.ratePerKg * exactWeight),
+  };
+}
+
+// Weighted average price per kg: 100 kg @ 40 + 10 kg @ 60 is 41.82, not 50.
+export function avgRatePerKg(totalCost: number, weightKg: number): number {
+  return weightKg > 0 ? round2(totalCost / weightKg) : 0;
 }
 
 export function sumTotals(lines: ReadonlyArray<{ totalCost: number }>): number {
