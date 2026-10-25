@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LayoutGrid, LogOut, Package, ShoppingCart, Truck, Users, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
@@ -15,8 +15,17 @@ const NAV = [
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
+
+  // redirect:false + client navigation: NextAuth's own redirect would use
+  // NEXTAUTH_URL (localhost), which on a phone points at the phone itself.
+  async function handleSignOut() {
+    await signOut({ redirect: false });
+    router.replace("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="surface-dark w-72 shrink-0 bg-nav text-on-nav-muted flex flex-col h-screen sticky top-0">
@@ -64,7 +73,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={handleSignOut}
           className="w-full flex items-center gap-2 px-3 min-h-11 text-sm text-on-nav hover:bg-nav-active rounded-xl"
         >
           <LogOut className="w-4 h-4" aria-hidden="true" /> Sign out

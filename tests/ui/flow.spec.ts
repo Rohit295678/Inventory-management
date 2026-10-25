@@ -98,6 +98,13 @@ test("full buy & sell flow", async ({ page }) => {
   await page.goto("/dashboard");
   await expect(page.getByText("₹15,000.00").first()).toBeVisible();
   await shot(page, "06-dashboard");
+
+  // Sign out must land on THIS host's /login (not NEXTAUTH_URL's localhost),
+  // which matters when testing from a phone on the LAN.
+  if (test.info().project.name === "mobile") await page.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  expect(new URL(page.url()).host).toBe(new URL(test.info().project.use.baseURL!).host);
 });
 
 test("login page renders", async ({ page }) => {
