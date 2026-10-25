@@ -31,15 +31,32 @@ JSON API built so a React Native / Expo app can use it as-is (same pattern as Mo
 ```bash
 npm install
 cp .env.example .env              # then set NEXTAUTH_SECRET (openssl rand -base64 32)
+```
 
-# Local database: a project-local Postgres on port 5433 (data in .pgdata/, gitignored)
+Then pick a database (set it in `.env`, see `.env.example`):
+
+**Neon (hosted, like MoneyMate, but its own database).** In the Neon console,
+create a database named `inv_mgmt` (Databases > New database). Copy the pooled
+connection string into `DATABASE_URL`, the direct (non-pooled) one into
+`DIRECT_URL`, and delete the `DATABASE_SSL` line. Then:
+
+```bash
+npm run db:push   # create the tables in Neon
+npm run dev
+```
+
+**Local Postgres (offline dev)** on port 5433, data in `.pgdata/` (gitignored):
+
+```bash
 initdb -D .pgdata -U postgres --auth=trust -E UTF8   # first time only
 npm run db:start
 createdb -h localhost -p 5433 -U postgres inv_mgmt  # first time only
-npm run db:push                                      # create/update tables
-
+npm run db:push
 npm run dev
 ```
+
+`npm run dev` starts the local Postgres automatically when `.env` points at
+localhost, and skips it for Neon.
 
 Open http://localhost:3000 and register.
 
