@@ -25,7 +25,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       {open && (
         <>
-          <div className="fixed inset-0 z-30 bg-brand-950/60 lg:hidden" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" onClick={() => setOpen(false)} aria-hidden="true" />
           <div className="fixed inset-y-0 left-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
             <Sidebar onClose={() => setOpen(false)} />
           </div>
@@ -33,12 +33,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       )}
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="surface-dark lg:hidden flex items-center gap-2 px-2 py-2 bg-brand-950 shrink-0">
+        <header className="surface-dark lg:hidden flex items-center gap-2 px-2 py-2 bg-nav shadow-md shrink-0">
           <button
             onClick={() => setOpen(true)}
             aria-label="Open menu"
             aria-expanded={open}
-            className="p-2.5 rounded-xl hover:bg-white/10 text-white"
+            className="p-2.5 rounded-xl hover:bg-nav-active text-on-nav"
           >
             <Menu className="w-6 h-6" aria-hidden="true" />
           </button>

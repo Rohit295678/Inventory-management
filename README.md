@@ -68,10 +68,12 @@ wins and `ratePerKg` is derived, otherwise `totalCost = ratePerKg × weightKg`.
 
 ## Theme
 
-All colours live in **`src/app/globals.css`** as Tailwind v4 `@theme` tokens:
-`brand-*` (deep indigo) and `accent-*` (amber). Components only use those
-tokens plus neutral `slate`, so a full repaint means editing that one file
-(plus the two RGB constants at the top of `src/lib/pdf.ts`, since jsPDF can't read CSS).
+All colours live in **`src/app/globals.css`** as Tailwind v4 `@theme` tokens
+(Flipkart-inspired): `brand-*` (blue, anchored on `#2874F0`), `accent-*` (yellow,
+`#FFE11B`) and semantic `nav` / `nav-active` / `on-nav` / `on-nav-muted` for the
+blue bars. Components only use those tokens plus neutral `slate`, so a full
+repaint means editing that one file (plus the two RGB constants at the top of
+`src/lib/pdf.ts`, since jsPDF can't read CSS).
 
 ## Tests
 

@@ -37,20 +37,20 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <main className="surface-dark relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-950 px-4 py-10">
+    <main className="surface-dark relative min-h-screen flex items-center justify-center overflow-hidden bg-nav px-4 py-10">
       {/* Decorative glow, purely visual. */}
       <div
-        className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent-400/20 blur-3xl"
+        className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/15 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -bottom-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-brand-600/40 blur-3xl"
+        className="pointer-events-none absolute -bottom-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-brand-400/50 blur-3xl"
         aria-hidden="true"
       />
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-8 gap-3">
           <Logo tone="light" size="lg" />
-          <p className="text-brand-100">Buy, sell &amp; track your goods</p>
+          <p className="text-on-nav-muted">Buy, sell &amp; track your goods</p>
         </div>
         <div className={`${cardClass} p-6 sm:p-8 shadow-xl`}>
           <h1 className="text-2xl font-semibold mb-6 text-slate-900">{isRegister ? "Create account" : "Welcome back"}</h1>

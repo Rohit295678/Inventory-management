@@ -11,7 +11,7 @@ import { buttonClass, cardClass } from "@/components/ui/styles";
 // Buy and sell get distinct badge colours so they're told apart at a glance.
 const CARD_STYLE: Record<TxType, { icon: typeof Truck; heading: string; badge: string }> = {
   PURCHASE: { icon: Truck, heading: "Bought today", badge: "bg-brand-100 text-brand-800" },
-  SALE: { icon: ShoppingCart, heading: "Sold today", badge: "bg-accent-100 text-brand-950" },
+  SALE: { icon: ShoppingCart, heading: "Sold today", badge: "bg-accent-100 text-brand-800" },
 };
 
 function TodayCard({ type, today }: { type: TxType; today: string }) {

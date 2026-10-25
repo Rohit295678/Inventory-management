@@ -1,34 +1,44 @@
 @import "tailwindcss";
 
 /*
- * THEME: the single place to change the app's colours.
- * brand  = deep indigo (primary actions, navigation, headings)
- * accent = amber (highlights on dark surfaces, the logo mark)
- * Components only ever use brand-* / accent-*, never raw palette names.
- * Contrast: brand-700 on white ≈ 7.9:1, accent-400 on brand-950 ≈ 10:1 (WCAG AA).
+ * THEME: the single place to change the app's colours (Flipkart-inspired).
+ * brand  = Flipkart blue, anchored on #2874F0 (brand-600)
+ * accent = Flipkart yellow, anchored on #FFE11B (accent-400)
+ * nav-*  = semantic tokens for the blue bars (sidebar, top bar, login)
+ * Components only use these tokens plus neutral slate, never raw palette names.
+ *
+ * Contrast notes (WCAG 2.2 AA needs 4.5:1 for normal text):
+ *   white on brand-600 #2874F0 = 4.3:1, so it is NOT used behind small text
+ *   white on brand-700 #1A5DD1 = 5.9:1, used for nav bars and buttons
+ *   accent-400 on brand-700    = 4.5:1, used for active markers + focus ring
  */
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dce8fe;
+  --color-brand-200: #bed4fd;
+  --color-brand-300: #90b7fa;
+  --color-brand-400: #5d97f6;
+  --color-brand-500: #3d84f3;
+  --color-brand-600: #2874f0;
+  --color-brand-700: #1a5dd1;
+  --color-brand-800: #174ea6;
+  --color-brand-900: #163f82;
+  --color-brand-950: #0f2a58;
 
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
+  --color-accent-50: #fffde6;
+  --color-accent-100: #fff7c2;
+  --color-accent-300: #ffeb5c;
+  --color-accent-400: #ffe11b;
+  --color-accent-500: #ffc200;
+
+  --color-nav: var(--color-brand-700);
+  --color-nav-active: var(--color-brand-800);
+  --color-on-nav: #ffffff;
+  --color-on-nav-muted: var(--color-brand-50);
 }
 
 :root {
-  --background: #f4f5fb;
+  --background: #f1f3f6;
   --foreground: #0f172a;
 }
 
@@ -43,7 +53,7 @@ body {
   outline-offset: 2px;
 }
 
-/* On dark surfaces (sidebar, top bar, login) indigo would vanish, so use amber. */
+/* On the blue bars a blue ring would vanish, so use Flipkart yellow. */
 .surface-dark :focus-visible {
   outline-color: var(--color-accent-400);
 }

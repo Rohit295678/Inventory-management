@@ -8,7 +8,7 @@ export const inputClass =
 
 export const labelClass = "block text-sm font-medium text-slate-700 mb-1";
 
-export const cardClass = "bg-white rounded-2xl border border-slate-200 shadow-sm shadow-brand-950/5";
+export const cardClass = "bg-white rounded-2xl border border-slate-200 shadow-sm shadow-slate-900/5";
 
 const buttonBase =
   "inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl font-semibold text-sm transition disabled:opacity-50";

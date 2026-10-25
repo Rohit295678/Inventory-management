@@ -8,8 +8,8 @@ import type { Summary, TransactionDTO } from "@/lib/types";
 
 const rs = (n: number) => formatMoney(n, "Rs. ");
 // Mirrors the brand tokens in globals.css (jsPDF can't read CSS variables).
-const BRAND: [number, number, number] = [67, 56, 202]; // brand-700
-const BRAND_TINT: [number, number, number] = [238, 242, 255]; // brand-50
+const BRAND: [number, number, number] = [26, 93, 209]; // brand-700 #1A5DD1
+const BRAND_TINT: [number, number, number] = [238, 244, 255]; // brand-50 #EEF4FF
 
 type ReportInput = {
   type: TxType;
