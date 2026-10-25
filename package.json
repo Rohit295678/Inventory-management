@@ -12,7 +12,8 @@
     "db:stop": "pg_ctl -D .pgdata stop",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "test": "node --test --experimental-strip-types tests/*.test.ts"
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:api": "node --test --test-concurrency=1 --experimental-strip-types tests/e2e/api.e2e.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.8.0",
