@@ -7,7 +7,7 @@ export type Unit = (typeof UNITS)[number];
 export type LineInput = {
   quantity: number;
   unit: string;
-  weightKg?: number | null;
+  weightPerUnitKg?: number | null; // e.g. 25 for a 25 kg packet; ignored for "kg"
   ratePerKg?: number | null;
   totalCost?: number | null;
 };
@@ -15,51 +15,56 @@ export type LineInput = {
 export type PricedLine = {
   quantity: number;
   unit: string;
-  weightKg: number;
+  weightPerUnitKg: number | null; // null for items counted in kg
+  weightKg: number; // total weight = quantity x weightPerUnitKg
   ratePerKg: number;
   totalCost: number;
 };
 
 export class PricingError extends Error {}
 
-export function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
+function roundTo(n: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round((n + Number.EPSILON) * factor) / factor;
 }
+
+// Money: 2 decimals (paise).
+export const round2 = (n: number) => roundTo(n, 2);
+// Weight: 3 decimals (grams), so 7 x 0.125 kg stays 0.875 kg.
+export const round3 = (n: number) => roundTo(n, 3);
 
 const isPositive = (n: number | null | undefined): n is number =>
   typeof n === "number" && Number.isFinite(n) && n > 0;
 
 /**
- * Fill in whichever price the user didn't type.
+ * Work out total weight and whichever price the user didn't type.
  *
- * - Items sold by "kg" weigh exactly their quantity, so weightKg = quantity.
- * - If totalCost is given it wins (it's the money that actually changed
- *   hands) and ratePerKg is derived; otherwise totalCost = ratePerKg × kg.
+ * - "kg" items weigh exactly their quantity.
+ * - Other units (packet, bag, ...) need the weight of ONE unit:
+ *     total weight = quantity x weightPerUnitKg
+ * - Price per kg given:  totalCost = ratePerKg x weightPerUnitKg x quantity
+ * - Total cost given:    ratePerKg = totalCost / total weight
+ *   (if both are sent, totalCost wins: it's the money that changed hands)
+ *
+ * Money is rounded only at the end, from the unrounded weight.
  */
 export function priceLine(input: LineInput): PricedLine {
   const { quantity, unit } = input;
   if (!isPositive(quantity)) throw new PricingError("Quantity must be greater than 0");
 
-  const weightKg = unit === "kg" ? quantity : input.weightKg;
-  if (!isPositive(weightKg)) throw new PricingError("Total weight (kg) must be greater than 0");
+  const byKg = unit === "kg";
+  const weightPerUnitKg = byKg ? null : input.weightPerUnitKg;
+  if (!byKg && !isPositive(weightPerUnitKg)) {
+    throw new PricingError(`Weight per ${unit} (kg) must be greater than 0`);
+  }
+  const exactWeight = byKg ? quantity : quantity * weightPerUnitKg!;
+  const base = { quantity, unit, weightPerUnitKg: weightPerUnitKg ?? null, weightKg: round3(exactWeight) };
 
   if (isPositive(input.totalCost)) {
-    return {
-      quantity,
-      unit,
-      weightKg,
-      totalCost: round2(input.totalCost),
-      ratePerKg: round2(input.totalCost / weightKg),
-    };
+    return { ...base, totalCost: round2(input.totalCost), ratePerKg: round2(input.totalCost / exactWeight) };
   }
   if (isPositive(input.ratePerKg)) {
-    return {
-      quantity,
-      unit,
-      weightKg,
-      ratePerKg: round2(input.ratePerKg),
-      totalCost: round2(input.ratePerKg * weightKg),
-    };
+    return { ...base, ratePerKg: round2(input.ratePerKg), totalCost: round2(input.ratePerKg * exactWeight) };
   }
   throw new PricingError("Enter either the price per kg or the total cost");
 }

@@ -87,7 +87,10 @@ model TransactionLine {
   itemId        String @map("item_id")
   quantity      Float // count in `unit`, e.g. 50 (packets)
   unit          String // snapshot of Item.unit at the time of the bill
-  weightKg      Float  @map("weight_kg")
+  // Weight of ONE unit, e.g. 25 (kg per packet). Null for items counted in kg,
+  // and for lines saved before this column existed.
+  weightPerUnitKg Float? @map("weight_per_unit_kg")
+  weightKg      Float  @map("weight_kg") // total = quantity x weightPerUnitKg
   ratePerKg     Float  @map("rate_per_kg")
   totalCost     Float  @map("total_cost")
 

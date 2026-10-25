@@ -26,6 +26,13 @@ export function formatQty(quantity: number, unit: string): string {
   return unit === "kg" ? formatKg(quantity) : plural(quantity, unit);
 }
 
+// One bill line's quantity: "20 kg" or "50 packets × 25 kg".
+// Lines saved before per-unit weight existed just show "50 packets".
+export function formatLineQty(line: { quantity: number; unit: string; weightPerUnitKg: number | null }): string {
+  const qty = formatQty(line.quantity, line.unit);
+  return line.weightPerUnitKg ? `${qty} × ${formatKg(line.weightPerUnitKg)}` : qty;
+}
+
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });

@@ -21,7 +21,7 @@ export const buttonClass = {
 
 // Pill toggles: tabs, quick date ranges, price-mode switch.
 export function chipClass(active: boolean): string {
-  return `min-h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap border transition ${
+  return `min-h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap border transition motion-reduce:transition-none ${
     active ? "bg-brand-700 text-white border-brand-700 shadow-sm" : "bg-white text-slate-800 border-slate-300 hover:bg-brand-50"
   }`;
 }

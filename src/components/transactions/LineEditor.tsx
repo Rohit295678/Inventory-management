@@ -1,6 +1,6 @@
 "use client";
 import { Trash2 } from "lucide-react";
-import { formatKg, formatMoney } from "@/lib/format";
+import { formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import { priceLine, PricingError, type PricedLine } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
@@ -12,7 +12,7 @@ export type LineDraft = {
   key: number;
   itemId: string;
   quantity: string;
-  weightKg: string;
+  weightPerUnitKg: string;
   priceMode: PriceMode;
   price: string;
 };
@@ -24,7 +24,7 @@ export function toPayload(line: LineDraft) {
   return {
     itemId: line.itemId,
     quantity: num(line.quantity) ?? 0,
-    weightKg: num(line.weightKg),
+    weightPerUnitKg: num(line.weightPerUnitKg),
     ratePerKg: line.priceMode === "rate" ? num(line.price) : null,
     totalCost: line.priceMode === "total" ? num(line.price) : null,
   };
@@ -100,13 +100,14 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
         />
         {!byWeight && (
           <Field
-            label="Total weight (kg)"
+            label={`Weight per ${item.unit} (kg)`}
             type="number"
             inputMode="decimal"
             min="0"
             step="any"
-            value={line.weightKg}
-            onChange={(e) => onChange({ weightKg: e.target.value })}
+            placeholder="e.g. 25"
+            value={line.weightPerUnitKg}
+            onChange={(e) => onChange({ weightPerUnitKg: e.target.value })}
             required
           />
         )}
@@ -141,11 +142,19 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
           onChange={(e) => onChange({ price: e.target.value })}
           required
         />
-        <p className="col-span-2 sm:col-span-1 text-sm text-slate-700 sm:min-h-11 flex items-center" aria-live="polite">
-          {priced
-            ? `${formatKg(priced.weightKg)} × ${formatMoney(priced.ratePerKg)}/kg = ${formatMoney(priced.totalCost)}`
-            : "Fill quantity and price to see the total"}
-        </p>
+        <div className="col-span-2 sm:col-span-1 text-sm text-slate-700 sm:min-h-11 flex flex-col justify-center" aria-live="polite">
+          {priced ? (
+            <>
+              <p>
+                {formatLineQty(priced)} × {formatMoney(priced.ratePerKg)}/kg ={" "}
+                <span className="font-semibold text-slate-900">{formatMoney(priced.totalCost)}</span>
+              </p>
+              {!byWeight && <p className="text-xs text-slate-600">Total weight: {formatKg(priced.weightKg)}</p>}
+            </>
+          ) : (
+            <p>Fill quantity, weight and price to see the total</p>
+          )}
+        </div>
       </div>
     </fieldset>
   );

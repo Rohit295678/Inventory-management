@@ -74,21 +74,24 @@ test("purchases: multi-item bill with both price formats", async () => {
     partyId: ids.supplier,
     date: today,
     lines: [
-      { itemId: ids.rice, quantity: 50, weightKg: 1250, totalCost: 62500 }, // 50 packets, total given
+      { itemId: ids.rice, quantity: 50, weightPerUnitKg: 25, totalCost: 62500 }, // 50 packets x 25 kg, total given
       { itemId: ids.dal, quantity: 20, ratePerKg: 90 }, // 20 kg @ 90/kg
     ],
   });
   assert.equal(res.status, 201, JSON.stringify(res.data));
   assert.equal(res.data.totalAmount, 64300);
   assert.equal(res.data.lines[0].ratePerKg, 50);
+  assert.equal(res.data.lines[0].weightPerUnitKg, 25);
+  assert.equal(res.data.lines[0].weightKg, 1250);
   assert.equal(res.data.lines[1].totalCost, 1800);
+  assert.equal(res.data.lines[1].weightPerUnitKg, null);
 });
 
 test("transactions: business-rule rejections", async () => {
   const base = { type: "PURCHASE", partyId: ids.supplier, date: today };
   // customer used on a purchase
   assert.equal((await call("POST", "/api/transactions", { ...base, partyId: ids.customer, lines: [{ itemId: ids.dal, quantity: 1, ratePerKg: 1 }] })).status, 400);
-  // packet item without weight
+  // packet item without per-packet weight
   assert.equal((await call("POST", "/api/transactions", { ...base, lines: [{ itemId: ids.rice, quantity: 1, ratePerKg: 1 }] })).status, 400);
   // no price at all
   assert.equal((await call("POST", "/api/transactions", { ...base, lines: [{ itemId: ids.dal, quantity: 1 }] })).status, 400);
@@ -101,7 +104,7 @@ test("sales: sell part of the stock, stock updates", async () => {
     type: "SALE",
     partyId: ids.customer,
     date: today,
-    lines: [{ itemId: ids.rice, quantity: 10, weightKg: 250, ratePerKg: 60 }],
+    lines: [{ itemId: ids.rice, quantity: 10, weightPerUnitKg: 25, ratePerKg: 60 }], // 60 x 25 x 10
   });
   assert.equal(sale.status, 201);
   assert.equal(sale.data.totalAmount, 15000);

@@ -41,7 +41,7 @@ export const partySchema = z.object({
 export const lineSchema = z.object({
   itemId: z.string().min(1, "Pick an item"),
   quantity: z.number().positive("Quantity must be greater than 0"),
-  weightKg: optionalNumber,
+  weightPerUnitKg: optionalNumber,
   ratePerKg: optionalNumber,
   totalCost: optionalNumber,
 });

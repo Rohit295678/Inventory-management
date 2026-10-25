@@ -48,6 +48,7 @@ function toDTO(tx: TxRow): TransactionDTO {
       itemName: l.item.name,
       quantity: l.quantity,
       unit: l.unit,
+      weightPerUnitKg: l.weightPerUnitKg,
       weightKg: l.weightKg,
       ratePerKg: l.ratePerKg,
       totalCost: l.totalCost,

@@ -28,6 +28,7 @@ export type TxLineDTO = {
   itemName: string;
   quantity: number;
   unit: string;
+  weightPerUnitKg: number | null; // null for kg items and older bills
   weightKg: number;
   ratePerKg: number;
   totalCost: number;

@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { formatDate, formatKg, formatMoney, formatQty } from "@/lib/format";
+import { formatDate, formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import type { TransactionDTO } from "@/lib/types";
 import { cardClass } from "@/components/ui/styles";
 
@@ -28,7 +28,7 @@ export function TransactionCard({ tx, onDelete }: { tx: TransactionDTO; onDelete
           <li key={l.id} className="flex flex-wrap justify-between gap-x-3 py-1.5">
             <span className="font-medium text-slate-800">{l.itemName}</span>
             <span className="text-slate-700">
-              {formatQty(l.quantity, l.unit)}
+              {formatLineQty(l)}
               {l.unit !== "kg" && ` (${formatKg(l.weightKg)})`} @ {formatMoney(l.ratePerKg)}/kg ={" "}
               <span className="font-semibold text-slate-900">{formatMoney(l.totalCost)}</span>
             </span>

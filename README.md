@@ -75,13 +75,15 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |
 | GET | `/api/transactions?type=&from=&to=&partyId=` | → `{ transactions, summary }` |
-| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightKg?, ratePerKg?, totalCost? }] }` |
+| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg?, totalCost? }] }` |
 | DELETE | `/api/transactions?id=` | |
 | GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf` |
 
 **Pricing rule** (`src/lib/pricing.ts`, shared by server and form): items counted
-in `kg` weigh their quantity; other units need `weightKg`. If `totalCost` is sent it
-wins and `ratePerKg` is derived, otherwise `totalCost = ratePerKg × weightKg`.
+in `kg` weigh their quantity; other units (packet, bag, ...) need `weightPerUnitKg`,
+the weight of ONE unit, so total weight = `quantity × weightPerUnitKg`.
+If `totalCost` is sent it wins and `ratePerKg` is derived, otherwise
+`totalCost = ratePerKg × weightPerUnitKg × quantity`.
 
 ## Theme
 

@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import { TX_COPY, type TxType } from "@/lib/domain";
-import { formatDate, formatKg, formatMoney, formatQty } from "@/lib/format";
+import { formatDate, formatKg, formatLineQty, formatMoney, formatQty } from "@/lib/format";
 import type { Summary, TransactionDTO } from "@/lib/types";
 
 // Server-side PDF so web and mobile download the exact same document.
@@ -67,7 +67,7 @@ export function buildTransactionsPdf(r: ReportInput): ArrayBuffer {
         i === 0 ? formatDate(tx.date) : "",
         i === 0 ? tx.party.name : "",
         l.itemName,
-        formatQty(l.quantity, l.unit),
+        formatLineQty(l),
         formatKg(l.weightKg),
         rs(l.ratePerKg),
         rs(l.totalCost),

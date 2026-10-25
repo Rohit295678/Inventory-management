@@ -3,9 +3,15 @@ import { expect, test, type Page } from "@playwright/test";
 // One realistic day in the shop: sign up, add goods and people, record a
 // multi-item purchase and a sale, then check totals, stock and the PDF.
 // Screenshots land in test-results/screens for a quick visual review.
+// animations: "disabled" fast-forwards CSS transitions to their end state;
+// headless Chrome otherwise captures pills mid-fade (looks washed out).
 
 const shot = (page: Page, name: string) =>
-  page.screenshot({ path: `test-results/screens/${test.info().project.name}-${name}.png`, fullPage: true });
+  page.screenshot({
+    path: `test-results/screens/${test.info().project.name}-${name}.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
 
 test("full buy & sell flow", async ({ page }) => {
   await page.goto("/register");
@@ -53,10 +59,11 @@ test("full buy & sell flow", async ({ page }) => {
   const line1 = form.getByRole("group", { name: "Item 1" });
   await line1.getByLabel("Item", { exact: true }).selectOption({ label: "Basmati Rice (Rice)" });
   await line1.getByLabel("Quantity (packet)").fill("50");
-  await line1.getByLabel("Total weight (kg)").fill("1250");
+  await line1.getByLabel("Weight per packet (kg)").fill("25");
   await line1.getByText("Total cost").click();
   await line1.getByLabel("Total cost (₹)").fill("62500");
-  await expect(line1.getByText("1,250 kg × ₹50.00/kg = ₹62,500.00")).toBeVisible();
+  await expect(line1.getByText("50 packets × 25 kg × ₹50.00/kg = ₹62,500.00")).toBeVisible();
+  await expect(line1.getByText("Total weight: 1,250 kg")).toBeVisible();
 
   await form.getByRole("button", { name: "Add another item" }).click();
   const line2 = form.getByRole("group", { name: "Item 2" });
@@ -84,10 +91,13 @@ test("full buy & sell flow", async ({ page }) => {
   const sl = sale.getByRole("group", { name: "Item 1" });
   await sl.getByLabel("Item", { exact: true }).selectOption({ label: "Basmati Rice (Rice)" });
   await sl.getByLabel("Quantity (packet)").fill("10");
-  await sl.getByLabel("Total weight (kg)").fill("250");
+  await sl.getByLabel("Weight per packet (kg)").fill("25");
   await sl.getByLabel("Price per kg (₹)").fill("60");
+  // price per kg x weight per packet x packets = 60 x 25 x 10
+  await expect(sl.getByText("10 packets × 25 kg × ₹60.00/kg = ₹15,000.00")).toBeVisible();
   await sale.getByRole("button", { name: "Save sale" }).click();
   await expect(page.getByRole("article", { name: /Sita Stores/ })).toBeVisible();
+  await expect(page.getByText("10 packets × 25 kg (250 kg)")).toBeVisible();
 
   // Stock = 50 - 10 packets
   await page.goto("/items");

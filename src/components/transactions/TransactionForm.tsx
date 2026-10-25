@@ -27,7 +27,7 @@ const blankLine = (): LineDraft => ({
   key: ++lineKeySeq,
   itemId: "",
   quantity: "",
-  weightKg: "",
+  weightPerUnitKg: "",
   priceMode: "rate",
   price: "",
 });
