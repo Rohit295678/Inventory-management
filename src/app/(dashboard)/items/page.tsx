@@ -69,30 +69,30 @@ export default function ItemsPage() {
         <div className="space-y-5">
           {byCategory.map(([category, list]) => (
             <section key={category} aria-labelledby={`cat-${category}`}>
-              <h2 id={`cat-${category}`} className="text-sm font-semibold uppercase tracking-wide text-gray-600 mb-2">
+              <h2 id={`cat-${category}`} className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-2">
                 {category}
               </h2>
-              <ul className={`${cardClass} divide-y divide-gray-100`}>
+              <ul className={`${cardClass} divide-y divide-slate-100`}>
                 {list.map((item) => {
                   const low = item.stock.weightKg <= 0;
                   return (
                     <li key={item.id} className="flex items-center gap-3 p-3 sm:p-4">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        {item.details && <p className="text-xs text-gray-600 truncate">{item.details}</p>}
+                        <p className="font-medium text-slate-900">{item.name}</p>
+                        {item.details && <p className="text-xs text-slate-600 truncate">{item.details}</p>}
                       </div>
                       <div className="text-right">
-                        <p className={`font-semibold ${low ? "text-red-700" : "text-emerald-800"}`}>
+                        <p className={`font-semibold ${low ? "text-red-700" : "text-brand-800"}`}>
                           {formatKg(item.stock.weightKg)}
                         </p>
                         {item.unit !== "kg" && (
-                          <p className="text-xs text-gray-600">{formatQty(item.stock.quantity, item.unit)}</p>
+                          <p className="text-xs text-slate-600">{formatQty(item.stock.quantity, item.unit)}</p>
                         )}
                         <span className="sr-only">in stock{low ? " (out of stock)" : ""}</span>
                       </div>
                       <button
                         onClick={() => setEditing({ mode: "edit", item })}
-                        className="p-2.5 rounded-xl text-gray-700 hover:bg-gray-100"
+                        className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
                         aria-label={`Edit ${item.name}`}
                       >
                         <Pencil className="w-4 h-4" aria-hidden="true" />

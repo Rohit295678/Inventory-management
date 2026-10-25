@@ -28,7 +28,7 @@ export function Field({ label, hint, className, children, ...inputProps }: Field
       </label>
       {control}
       {hint && (
-        <p id={hintId} className="mt-1 text-xs text-gray-600">
+        <p id={hintId} className="mt-1 text-xs text-slate-600">
           {hint}
         </p>
       )}

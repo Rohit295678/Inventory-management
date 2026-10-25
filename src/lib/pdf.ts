@@ -7,7 +7,9 @@ import type { Summary, TransactionDTO } from "@/lib/types";
 // Server-side PDF so web and mobile download the exact same document.
 
 const rs = (n: number) => formatMoney(n, "Rs. ");
-const BRAND: [number, number, number] = [4, 120, 87]; // emerald-700
+// Mirrors the brand tokens in globals.css (jsPDF can't read CSS variables).
+const BRAND: [number, number, number] = [67, 56, 202]; // brand-700
+const BRAND_TINT: [number, number, number] = [238, 242, 255]; // brand-50
 
 type ReportInput = {
   type: TxType;
@@ -73,7 +75,7 @@ export function buildTransactionsPdf(r: ReportInput): ArrayBuffer {
     ),
     foot: [["", "", "", "", "", "Grand total", rs(r.summary.totalAmount)]],
     headStyles,
-    footStyles: { fillColor: [236, 253, 245], textColor: 20, fontStyle: "bold" },
+    footStyles: { fillColor: BRAND_TINT, textColor: 20, fontStyle: "bold" },
     styles: { fontSize: 9 },
     margin: { left: margin, right: margin },
   });

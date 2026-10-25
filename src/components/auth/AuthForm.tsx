@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { api, errorMessage } from "@/lib/api-client";
 import { Field } from "@/components/ui/Field";
+import { Logo } from "@/components/ui/Logo";
 import { Alert } from "@/components/ui/PageHeader";
 import { buttonClass, cardClass } from "@/components/ui/styles";
 
@@ -36,14 +37,23 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <p className="text-4xl font-bold text-emerald-800">StockBook</p>
-          <p className="text-gray-700 mt-2">Buy, sell &amp; track your goods</p>
+    <main className="surface-dark relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-950 px-4 py-10">
+      {/* Decorative glow, purely visual. */}
+      <div
+        className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent-400/20 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -bottom-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-brand-600/40 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative w-full max-w-md">
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <Logo tone="light" size="lg" />
+          <p className="text-brand-100">Buy, sell &amp; track your goods</p>
         </div>
-        <div className={`${cardClass} p-6 sm:p-8`}>
-          <h1 className="text-2xl font-semibold mb-6 text-gray-900">{isRegister ? "Create account" : "Welcome back"}</h1>
+        <div className={`${cardClass} p-6 sm:p-8 shadow-xl`}>
+          <h1 className="text-2xl font-semibold mb-6 text-slate-900">{isRegister ? "Create account" : "Welcome back"}</h1>
           <Alert message={error} />
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && <Field label="Your name" name="name" autoComplete="name" />}
@@ -61,9 +71,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               {loading ? "Please wait…" : isRegister ? "Create account" : "Sign in"}
             </button>
           </form>
-          <p className="mt-6 text-center text-sm text-gray-700">
+          <p className="mt-6 text-center text-sm text-slate-700">
             {isRegister ? "Already have an account? " : "No account? "}
-            <Link href={isRegister ? "/login" : "/register"} className="text-emerald-800 font-semibold underline">
+            <Link href={isRegister ? "/login" : "/register"} className="text-brand-800 font-semibold underline">
               {isRegister ? "Sign in" : "Sign up"}
             </Link>
           </p>

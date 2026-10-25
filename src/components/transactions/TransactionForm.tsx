@@ -66,16 +66,16 @@ export function TransactionForm({ type, items, parties, onSaved, onCancel }: Pro
 
   if (!items.length || !parties.length) {
     return (
-      <div className={`${cardClass} p-4 mb-5 text-sm text-gray-800`}>
+      <div className={`${cardClass} p-4 mb-5 text-sm text-slate-800`}>
         Before adding a {copy.noun}, add at least one{" "}
         {!items.length && (
-          <Link href="/items" className="text-emerald-800 underline font-semibold">
+          <Link href="/items" className="text-brand-800 underline font-semibold">
             item
           </Link>
         )}
         {!items.length && !parties.length && " and one "}
         {!parties.length && (
-          <Link href="/parties" className="text-emerald-800 underline font-semibold">
+          <Link href="/parties" className="text-brand-800 underline font-semibold">
             {copy.party.toLowerCase()}
           </Link>
         )}
@@ -86,7 +86,7 @@ export function TransactionForm({ type, items, parties, onSaved, onCancel }: Pro
 
   return (
     <form onSubmit={handleSubmit} className={`${cardClass} p-4 sm:p-5 mb-5 space-y-4`} aria-label={`New ${copy.noun}`}>
-      <h2 className="font-semibold text-gray-900">New {copy.noun}</h2>
+      <h2 className="font-semibold text-slate-900">New {copy.noun}</h2>
       <Alert message={error} />
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -124,8 +124,8 @@ export function TransactionForm({ type, items, parties, onSaved, onCancel }: Pro
 
       <Field label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Bill no., vehicle…" />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-200">
-        <p className="text-lg font-bold text-gray-900" aria-live="polite">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+        <p className="text-lg font-bold text-slate-900" aria-live="polite">
           Total: {formatMoney(grandTotal)}
         </p>
         <div className="flex gap-2">

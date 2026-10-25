@@ -66,8 +66,19 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 in `kg` weigh their quantity; other units need `weightKg`. If `totalCost` is sent it
 wins and `ratePerKg` is derived, otherwise `totalCost = ratePerKg × weightKg`.
 
+## Theme
+
+All colours live in **`src/app/globals.css`** as Tailwind v4 `@theme` tokens:
+`brand-*` (deep indigo) and `accent-*` (amber). Components only use those
+tokens plus neutral `slate`, so a full repaint means editing that one file
+(plus the two RGB constants at the top of `src/lib/pdf.ts`, since jsPDF can't read CSS).
+
 ## Tests
 
 ```bash
-npm test        # unit tests for pricing + summaries (node:test)
+npm test          # unit: pricing + summaries (node:test)
+npm run test:api  # API e2e via the mobile Bearer-token flow (needs `npm run dev`)
+npm run test:ui   # Playwright UI e2e on phone + desktop viewports, uses installed Chrome
 ```
+
+UI test screenshots are saved to `test-results/screens/`.

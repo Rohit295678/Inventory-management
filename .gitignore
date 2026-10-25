@@ -12,5 +12,9 @@ next-env.d.ts
 # Project-local Postgres data dir (see README "Local database")
 .pgdata/
 
+# Playwright output
+test-results/
+playwright-report/
+
 # Vercel
 .vercel

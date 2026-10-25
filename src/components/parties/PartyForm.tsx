@@ -38,7 +38,7 @@ export function PartyForm({ party, defaultKind = "SUPPLIER", onSaved, onCancel }
 
   return (
     <form onSubmit={handleSubmit} className={`${cardClass} p-4 sm:p-5 mb-5`} aria-label={party ? "Edit person" : "New person"}>
-      <h2 className="font-semibold text-gray-900 mb-3">{party ? `Edit ${party.name}` : "Add a person"}</h2>
+      <h2 className="font-semibold text-slate-900 mb-3">{party ? `Edit ${party.name}` : "Add a person"}</h2>
       <Alert message={error} />
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Name" name="name" defaultValue={party?.name} placeholder="e.g. Ramesh Traders" required />

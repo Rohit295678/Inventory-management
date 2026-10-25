@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#047857",
+  themeColor: "#1e1b4b", // brand-950: matches the dark top bar on mobile
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
       <body
-        className="h-full bg-gray-50 text-gray-900 antialiased"
+        className="h-full text-slate-900 antialiased"
         style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
       >
         <Providers>{children}</Providers>

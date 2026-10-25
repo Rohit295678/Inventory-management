@@ -17,8 +17,13 @@ export function formatKg(n: number): string {
   return `${number.format(n)} kg`;
 }
 
+// "1 bill", "3 bills", "2.5 packets".
+export function plural(n: number, word: string): string {
+  return `${number.format(n)} ${word}${n === 1 ? "" : "s"}`;
+}
+
 export function formatQty(quantity: number, unit: string): string {
-  return unit === "kg" ? formatKg(quantity) : `${number.format(quantity)} ${unit}${quantity === 1 ? "" : "s"}`;
+  return unit === "kg" ? formatKg(quantity) : plural(quantity, unit);
 }
 
 export function formatDate(iso: string): string {

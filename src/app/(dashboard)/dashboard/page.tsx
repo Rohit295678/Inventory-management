@@ -3,35 +3,43 @@ import Link from "next/link";
 import { ShoppingCart, Truck } from "lucide-react";
 import { useApi } from "@/lib/api-client";
 import { TX_COPY, todayISO, type TxType } from "@/lib/domain";
-import { formatDate, formatKg, formatMoney, formatQty } from "@/lib/format";
+import { formatDate, formatKg, formatMoney, formatQty, plural } from "@/lib/format";
 import type { ItemDTO, TransactionsResponse } from "@/lib/types";
 import { Alert, PageHeader } from "@/components/ui/PageHeader";
 import { buttonClass, cardClass } from "@/components/ui/styles";
 
+// Buy and sell get distinct badge colours so they're told apart at a glance.
+const CARD_STYLE: Record<TxType, { icon: typeof Truck; heading: string; badge: string }> = {
+  PURCHASE: { icon: Truck, heading: "Bought today", badge: "bg-brand-100 text-brand-800" },
+  SALE: { icon: ShoppingCart, heading: "Sold today", badge: "bg-accent-100 text-brand-950" },
+};
+
 function TodayCard({ type, today }: { type: TxType; today: string }) {
   const copy = TX_COPY[type];
   const { data, error } = useApi<TransactionsResponse>(`/api/transactions?type=${type}&from=${today}&to=${today}`);
-  const Icon = type === "PURCHASE" ? Truck : ShoppingCart;
+  const { icon: Icon, heading, badge } = CARD_STYLE[type];
 
   return (
     <section className={`${cardClass} p-4`} aria-labelledby={`today-${type}`}>
-      <div className="flex items-center gap-2 text-gray-700">
-        <Icon className="w-5 h-5" aria-hidden="true" />
-        <h2 id={`today-${type}`} className="font-semibold">
-          {type === "PURCHASE" ? "Bought today" : "Sold today"}
+      <div className="flex items-center gap-3">
+        <span className={`inline-flex w-10 h-10 items-center justify-center rounded-xl ${badge}`} aria-hidden="true">
+          <Icon className="w-5 h-5" />
+        </span>
+        <h2 id={`today-${type}`} className="font-semibold text-slate-800">
+          {heading}
         </h2>
       </div>
       <Alert message={error} />
-      <p className="text-3xl font-bold text-gray-900 mt-2">{data ? formatMoney(data.summary.totalAmount) : "…"}</p>
-      <p className="text-sm text-gray-600">
-        {data ? `${data.summary.bills} bill(s) · ${formatKg(data.summary.totalWeightKg)}` : " "}
+      <p className="text-3xl font-bold text-slate-900 mt-3">{data ? formatMoney(data.summary.totalAmount) : "…"}</p>
+      <p className="text-sm text-slate-600">
+        {data ? `${plural(data.summary.bills, "bill")} · ${formatKg(data.summary.totalWeightKg)}` : " "}
       </p>
       {data && data.summary.byItem.length > 0 && (
-        <ul className="mt-3 text-sm divide-y divide-gray-100">
+        <ul className="mt-3 text-sm divide-y divide-slate-100">
           {data.summary.byItem.map((i) => (
             <li key={`${i.itemId}:${i.unit}`} className="flex justify-between py-1.5">
               <span>
-                {i.itemName} <span className="text-gray-600">· {formatQty(i.quantity, i.unit)}</span>
+                {i.itemName} <span className="text-slate-600">· {formatQty(i.quantity, i.unit)}</span>
               </span>
               <span className="font-medium">{formatMoney(i.totalCost)}</span>
             </li>
@@ -71,7 +79,7 @@ export default function DashboardPage() {
               </li>
             ))}
           </ul>
-          <Link href="/items" className="inline-block mt-3 text-sm text-emerald-800 underline font-semibold">
+          <Link href="/items" className="inline-block mt-3 text-sm text-brand-800 underline font-semibold">
             View all stock
           </Link>
         </section>

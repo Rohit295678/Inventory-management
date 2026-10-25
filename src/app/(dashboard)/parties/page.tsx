@@ -7,7 +7,7 @@ import { PARTY_KIND_LABELS, TX_COPY, type PartyKind } from "@/lib/domain";
 import type { PartyDTO } from "@/lib/types";
 import { PartyForm } from "@/components/parties/PartyForm";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
-import { buttonClass, cardClass } from "@/components/ui/styles";
+import { buttonClass, cardClass, chipClass } from "@/components/ui/styles";
 
 const TABS: { kind: PartyKind | "ALL"; label: string }[] = [
   { kind: "ALL", label: "Everyone" },
@@ -72,9 +72,7 @@ export default function PartiesPage() {
             role="tab"
             aria-selected={tab === t.kind}
             onClick={() => setTab(t.kind)}
-            className={`min-h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap border ${
-              tab === t.kind ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-gray-800 border-gray-300"
-            }`}
+            className={chipClass(tab === t.kind)}
           >
             {t.label}
           </button>
@@ -86,23 +84,23 @@ export default function PartiesPage() {
       ) : !parties?.length ? (
         <EmptyState>No one here yet. Add the people you trade with.</EmptyState>
       ) : (
-        <ul className={`${cardClass} divide-y divide-gray-100`}>
+        <ul className={`${cardClass} divide-y divide-slate-100`}>
           {parties.map((p) => (
             <li key={p.id} className="p-3 sm:p-4">
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{p.name}</p>
-                  <p className="text-xs text-gray-600">{PARTY_KIND_LABELS[p.kind]}</p>
+                  <p className="font-medium text-slate-900">{p.name}</p>
+                  <p className="text-xs text-slate-600">{PARTY_KIND_LABELS[p.kind]}</p>
                   {p.phone && (
-                    <a href={`tel:${p.phone}`} className="inline-flex items-center gap-1 text-sm text-emerald-800 underline mt-1">
+                    <a href={`tel:${p.phone}`} className="inline-flex items-center gap-1 text-sm text-brand-800 underline mt-1">
                       <Phone className="w-3.5 h-3.5" aria-hidden="true" /> {p.phone}
                     </a>
                   )}
-                  {p.address && <p className="text-xs text-gray-600 mt-1">{p.address}</p>}
+                  {p.address && <p className="text-xs text-slate-600 mt-1">{p.address}</p>}
                 </div>
                 <button
                   onClick={() => setEditing({ mode: "edit", party: p })}
-                  className="p-2.5 rounded-xl text-gray-700 hover:bg-gray-100"
+                  className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
                   aria-label={`Edit ${p.name}`}
                 >
                   <Pencil className="w-4 h-4" aria-hidden="true" />

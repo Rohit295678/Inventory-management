@@ -1,8 +1,35 @@
 @import "tailwindcss";
 
+/*
+ * THEME: the single place to change the app's colours.
+ * brand  = deep indigo (primary actions, navigation, headings)
+ * accent = amber (highlights on dark surfaces, the logo mark)
+ * Components only ever use brand-* / accent-*, never raw palette names.
+ * Contrast: brand-700 on white ≈ 7.9:1, accent-400 on brand-950 ≈ 10:1 (WCAG AA).
+ */
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
+
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+}
+
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: #f4f5fb;
+  --foreground: #0f172a;
 }
 
 body {
@@ -12,6 +39,11 @@ body {
 
 /* Visible keyboard focus everywhere (WCAG 2.4.7 / 2.4.11). */
 :focus-visible {
-  outline: 3px solid #047857;
+  outline: 3px solid var(--color-brand-600);
   outline-offset: 2px;
+}
+
+/* On dark surfaces (sidebar, top bar, login) indigo would vanish, so use amber. */
+.surface-dark :focus-visible {
+  outline-color: var(--color-accent-400);
 }

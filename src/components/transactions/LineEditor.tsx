@@ -4,7 +4,7 @@ import { formatKg, formatMoney } from "@/lib/format";
 import { priceLine, PricingError, type PricedLine } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
-import { inputClass } from "@/components/ui/styles";
+import { chipClass, inputClass } from "@/components/ui/styles";
 
 export type PriceMode = "rate" | "total";
 
@@ -56,8 +56,8 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
   const byWeight = !item || item.unit === "kg";
 
   return (
-    <fieldset className="relative rounded-xl border border-gray-200 p-3 sm:p-4 pt-1 bg-gray-50">
-      <legend className="px-1 text-sm font-semibold text-gray-800">Item {index + 1}</legend>
+    <fieldset className="relative rounded-xl border border-brand-100 p-3 sm:p-4 pt-1 bg-brand-50/50">
+      <legend className="px-1 text-sm font-semibold text-brand-900">Item {index + 1}</legend>
       {canRemove && (
         <button
           type="button"
@@ -117,9 +117,7 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
           {(["rate", "total"] as const).map((mode) => (
             <label
               key={mode}
-              className={`flex-1 min-h-11 flex items-center justify-center rounded-xl border text-sm font-medium cursor-pointer ${
-                line.priceMode === mode ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-gray-800 border-gray-300"
-              }`}
+              className={`${chipClass(line.priceMode === mode)} flex-1 flex items-center justify-center cursor-pointer has-focus-visible:outline-3 has-focus-visible:outline-brand-600 has-focus-visible:outline-offset-2`}
             >
               <input
                 type="radio"
@@ -143,7 +141,7 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
           onChange={(e) => onChange({ price: e.target.value })}
           required
         />
-        <p className="col-span-2 sm:col-span-1 text-sm text-gray-700 min-h-11 flex items-center" aria-live="polite">
+        <p className="col-span-2 sm:col-span-1 text-sm text-slate-700 sm:min-h-11 flex items-center" aria-live="polite">
           {priced
             ? `${formatKg(priced.weightKg)} × ${formatMoney(priced.ratePerKg)}/kg = ${formatMoney(priced.totalCost)}`
             : "Fill quantity and price to see the total"}

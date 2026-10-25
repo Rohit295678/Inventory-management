@@ -11,7 +11,7 @@ import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
 import { Field } from "@/components/ui/Field";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
-import { buttonClass, inputClass } from "@/components/ui/styles";
+import { buttonClass, chipClass, inputClass } from "@/components/ui/styles";
 
 type Range = { from: string; to: string };
 
@@ -109,9 +109,7 @@ export function TransactionsView({ type }: { type: TxType }) {
                 key={label}
                 onClick={() => setRange(r)}
                 aria-pressed={active}
-                className={`min-h-11 px-4 rounded-full text-sm font-medium whitespace-nowrap border ${
-                  active ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-gray-800 border-gray-300"
-                }`}
+                className={chipClass(active)}
               >
                 {label}
               </button>
@@ -147,10 +145,10 @@ export function TransactionsView({ type }: { type: TxType }) {
           {groups.map(([date, list]) => (
             <section key={date} aria-labelledby={`day-${date}`}>
               <div className="flex justify-between items-baseline mb-2">
-                <h2 id={`day-${date}`} className="text-sm font-semibold text-gray-700">
+                <h2 id={`day-${date}`} className="text-sm font-semibold text-slate-700">
                   {formatDate(date)}
                 </h2>
-                <p className="text-sm font-semibold text-gray-800">
+                <p className="text-sm font-semibold text-slate-800">
                   {formatMoney(list.reduce((sum, tx) => sum + tx.totalAmount, 0))}
                 </p>
               </div>

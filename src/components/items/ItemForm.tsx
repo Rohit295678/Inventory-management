@@ -40,7 +40,7 @@ export function ItemForm({ item, categories, onSaved, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={`${cardClass} p-4 sm:p-5 mb-5`} aria-label={item ? "Edit item" : "New item"}>
-      <h2 className="font-semibold text-gray-900 mb-3">{item ? `Edit ${item.name}` : "Add a new item"}</h2>
+      <h2 className="font-semibold text-slate-900 mb-3">{item ? `Edit ${item.name}` : "Add a new item"}</h2>
       <Alert message={error} />
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Item name" name="name" defaultValue={item?.name} placeholder="e.g. Basmati Rice" required />
