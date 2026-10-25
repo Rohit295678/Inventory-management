@@ -1,0 +1,72 @@
+import { formatKg, formatMoney, formatQty } from "@/lib/format";
+import { TX_COPY, type TxType } from "@/lib/domain";
+import type { Summary } from "@/lib/types";
+import { cardClass } from "@/components/ui/styles";
+
+// Totals for the current filter: grand total, per item, per person.
+export function SummaryPanel({ type, summary }: { type: TxType; summary: Summary }) {
+  const copy = TX_COPY[type];
+  const stats = [
+    { label: "Total amount", value: formatMoney(summary.totalAmount) },
+    { label: "Total weight", value: formatKg(summary.totalWeightKg) },
+    { label: "Bills", value: String(summary.bills) },
+  ];
+
+  return (
+    <section aria-label="Summary" className="space-y-3 mb-5">
+      <dl className="grid grid-cols-3 gap-2">
+        {stats.map((s) => (
+          <div key={s.label} className={`${cardClass} p-3`}>
+            <dt className="text-xs text-gray-600">{s.label}</dt>
+            <dd className="text-base sm:text-xl font-bold text-gray-900 break-words">{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {summary.byItem.length > 0 && (
+        <div className={`${cardClass} overflow-x-auto`}>
+          <table className="w-full text-sm">
+            <caption className="text-left font-semibold text-gray-900 px-3 pt-3 pb-1">Item-wise</caption>
+            <thead className="text-gray-600 text-xs">
+              <tr>
+                <th scope="col" className="text-left px-3 py-2">Item</th>
+                <th scope="col" className="text-right px-3 py-2">Qty</th>
+                <th scope="col" className="text-right px-3 py-2">Avg / kg</th>
+                <th scope="col" className="text-right px-3 py-2">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {summary.byItem.map((i) => (
+                <tr key={`${i.itemId}:${i.unit}`}>
+                  <th scope="row" className="text-left font-medium px-3 py-2">{i.itemName}</th>
+                  <td className="text-right px-3 py-2 whitespace-nowrap">
+                    {formatQty(i.quantity, i.unit)}
+                    {i.unit !== "kg" && <span className="block text-xs text-gray-600">{formatKg(i.weightKg)}</span>}
+                  </td>
+                  <td className="text-right px-3 py-2 whitespace-nowrap">{formatMoney(i.avgRatePerKg)}</td>
+                  <td className="text-right px-3 py-2 font-semibold whitespace-nowrap">{formatMoney(i.totalCost)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {summary.byParty.length > 1 && (
+        <div className={`${cardClass} p-3`}>
+          <h3 className="font-semibold text-gray-900 mb-2 text-sm">{copy.party}-wise</h3>
+          <ul className="text-sm divide-y divide-gray-100">
+            {summary.byParty.map((p) => (
+              <li key={p.partyId} className="flex justify-between py-1.5">
+                <span>
+                  {p.partyName} <span className="text-gray-600">({p.bills} bill{p.bills === 1 ? "" : "s"})</span>
+                </span>
+                <span className="font-semibold">{formatMoney(p.totalAmount)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}

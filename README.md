@@ -1,0 +1,73 @@
+# StockBook: Inventory Manager
+
+Mobile-first web app to record goods you **buy** and **sell**, see **daily totals**,
+track **stock on hand**, and download **PDF reports**. The backend is a plain
+JSON API built so a React Native / Expo app can use it as-is (same pattern as MoneyMate).
+
+## Features
+
+- **Login / register** (email + password)
+- **Items & stock**: add goods (name, type of goods, counted in kg/packet/bag/box/piece, details); stock = bought − sold
+- **People**: suppliers (I buy from), customers (I sell to), or both
+- **Purchases & Sales**: one bill per person per visit, with many items per bill
+  - Each line: quantity, total kg (for packets/bags), and **either** price per kg **or** total cost; the other is calculated
+  - Prices are stored per bill, so they can change every day
+- **Date-wise view**: Today / Last 7 days / This month / custom range / per person, with item-wise and person-wise totals
+- **PDF download** for exactly what's on screen
+
+## Tech stack (mirrors `money/moneymate`)
+
+| Layer     | Choice                                              |
+| --------- | --------------------------------------------------- |
+| Framework | Next.js 16 (App Router) + TypeScript                |
+| Styling   | Tailwind CSS v4                                     |
+| Database  | PostgreSQL via Prisma 7 + `@prisma/adapter-pg`       |
+| Auth      | NextAuth v4 (web cookie) + Bearer JWT (`/api/mobile/*`) |
+| PDF       | jsPDF + jspdf-autotable (server-side)               |
+| Validation| zod                                                 |
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env              # then set NEXTAUTH_SECRET (openssl rand -base64 32)
+
+# Local database: a project-local Postgres on port 5433 (data in .pgdata/, gitignored)
+initdb -D .pgdata -U postgres --auth=trust -E UTF8   # first time only
+npm run db:start
+createdb -h localhost -p 5433 -U postgres inv_mgmt  # first time only
+npm run db:push                                      # create/update tables
+
+npm run dev
+```
+
+Open http://localhost:3000 and register.
+
+## API (shared by web and mobile)
+
+Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
+`Authorization: Bearer <token>` (mobile) and sends CORS headers.
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| POST | `/api/mobile/register` | `{ name?, email, password }` → `{ token, user }` |
+| POST | `/api/mobile/login` | `{ email, password }` → `{ token, user }` |
+| GET | `/api/mobile/me` | Validate a stored token |
+| GET/POST | `/api/items` | List (with `stock`) / create `{ name, category, unit, details? }` |
+| PATCH/DELETE | `/api/items?id=` | Delete is refused while the item is on a bill |
+| GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
+| PATCH/DELETE | `/api/parties?id=` | |
+| GET | `/api/transactions?type=&from=&to=&partyId=` | → `{ transactions, summary }` |
+| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightKg?, ratePerKg?, totalCost? }] }` |
+| DELETE | `/api/transactions?id=` | |
+| GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf` |
+
+**Pricing rule** (`src/lib/pricing.ts`, shared by server and form): items counted
+in `kg` weigh their quantity; other units need `weightKg`. If `totalCost` is sent it
+wins and `ratePerKg` is derived, otherwise `totalCost = ratePerKg × weightKg`.
+
+## Tests
+
+```bash
+npm test        # unit tests for pricing + summaries (node:test)
+```
