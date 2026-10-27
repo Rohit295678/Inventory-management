@@ -101,11 +101,14 @@ Each script is safe to run more than once.
 ## Theme
 
 All colours live in **`src/app/globals.css`** as Tailwind v4 `@theme` tokens
-(Flipkart-inspired): `brand-*` (blue, anchored on `#2874F0`), `accent-*` (yellow,
-`#FFE11B`) and semantic `nav` / `nav-active` / `on-nav` / `on-nav-muted` for the
-blue bars. Components only use those tokens plus neutral `slate`, so a full
-repaint means editing that one file (plus the two RGB constants at the top of
-`src/lib/pdf.ts`, since jsPDF can't read CSS).
+(calm "petrol + butter" look): `brand-*` (petrol teal, anchored on `#1B455E`),
+`accent-*` (butter yellow, `#F9D66B`), pastel `mint` / `lilac` / `aqua` badges,
+warm neutrals `canvas` / `line`, and semantic `nav` / `nav-hover` / `nav-active` /
+`on-nav*` for the dark surfaces. The font is Lexend, self-hosted via
+`@fontsource-variable/lexend` (no Google request). Shapes (pill buttons, rounded
+cards) live in `src/components/ui/styles.ts`. A full repaint means editing
+those files (plus the two RGB constants at the top of `src/lib/pdf.ts`, since
+jsPDF can't read CSS). Every text/background pair is measured AA (>= 6.8:1).
 
 ## Tests
 

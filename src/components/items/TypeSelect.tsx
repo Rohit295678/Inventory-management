@@ -86,7 +86,7 @@ export function TypeSelect({ defaultTypeId = "" }: { defaultTypeId?: string }) {
       </Field>
 
       {showAdd && (
-        <div className="rounded-xl border border-brand-100 bg-brand-50/50 p-3 space-y-2">
+        <div className="rounded-2xl border border-line bg-canvas/60 p-3 space-y-2">
           <Field
             label="New type name"
             value={newName}

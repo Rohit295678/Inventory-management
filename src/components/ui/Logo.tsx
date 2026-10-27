@@ -6,13 +6,13 @@ export function Logo({ tone = "dark", size = "md", tagline }: { tone?: "dark" | 
   return (
     <div className="flex items-center gap-2.5">
       <span
-        className={`inline-flex items-center justify-center rounded-xl bg-accent-400 text-brand-700 ${big ? "w-12 h-12" : "w-9 h-9"}`}
+        className={`inline-flex items-center justify-center rounded-full bg-accent-400 text-brand-800 ${big ? "w-12 h-12" : "w-9 h-9"}`}
         aria-hidden="true"
       >
         <Boxes className={big ? "w-7 h-7" : "w-5 h-5"} />
       </span>
       <span>
-        <span className={`block font-extrabold tracking-tight ${big ? "text-3xl" : "text-lg"} ${tone === "light" ? "text-on-nav" : "text-brand-900"}`}>
+        <span className={`block font-semibold tracking-tight ${big ? "text-3xl" : "text-xl"} ${tone === "light" ? "text-on-nav" : "text-brand-800"}`}>
           StockBook
         </span>
         {tagline && (

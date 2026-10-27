@@ -142,7 +142,7 @@ function LoadedForm({
 
       <Field label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Bill no., vehicle…" />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
         <p className="text-lg font-bold text-slate-900" aria-live="polite">
           Total: {formatMoney(grandTotal)}
         </p>

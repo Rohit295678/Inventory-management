@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { formatDate, formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import type { TransactionDTO } from "@/lib/types";
-import { cardClass } from "@/components/ui/styles";
+import { cardClass, iconButtonClass } from "@/components/ui/styles";
 
 export function TransactionCard({ tx, onDelete }: { tx: TransactionDTO; onDelete: (tx: TransactionDTO) => void }) {
   return (
@@ -17,7 +17,7 @@ export function TransactionCard({ tx, onDelete }: { tx: TransactionDTO; onDelete
         <p className="font-bold text-slate-900 whitespace-nowrap">{formatMoney(tx.totalAmount)}</p>
         <button
           onClick={() => onDelete(tx)}
-          className="p-2.5 -mt-1.5 rounded-xl text-red-700 hover:bg-red-50"
+          className={`${iconButtonClass.danger} -mt-1.5`}
           aria-label={`Delete bill from ${tx.party.name} on ${formatDate(tx.date)}`}
         >
           <Trash2 className="w-4 h-4" aria-hidden="true" />

@@ -9,9 +9,9 @@ export function StatTiles({ stats }: { stats: Stat[] }) {
   return (
     <dl className={`grid ${columns} gap-2`}>
       {stats.map((s) => (
-        <div key={s.label} className={`${cardClass} p-3`}>
+        <div key={s.label} className={`${cardClass} px-4 py-3`}>
           <dt className="text-xs text-slate-600">{s.label}</dt>
-          <dd className="text-base sm:text-xl font-bold text-slate-900 break-words">{s.value}</dd>
+          <dd className="mt-0.5 text-lg sm:text-2xl font-medium text-brand-800 break-words">{s.value}</dd>
         </div>
       ))}
     </dl>

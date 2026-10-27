@@ -4,7 +4,7 @@ import { formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import { priceLine, PricingError, type PricedLine } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
-import { inputClass } from "@/components/ui/styles";
+import { iconButtonClass, inputClass } from "@/components/ui/styles";
 
 export type LineDraft = {
   key: number;
@@ -52,13 +52,13 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
   const byWeight = !item || item.unit === "kg";
 
   return (
-    <fieldset className="relative rounded-xl border border-brand-100 p-3 sm:p-4 pt-1 bg-brand-50/50">
+    <fieldset className="relative rounded-2xl border border-line p-3 sm:p-4 pt-1 bg-canvas/60">
       <legend className="px-1 text-sm font-semibold text-brand-900">Item {index + 1}</legend>
       {canRemove && (
         <button
           type="button"
           onClick={onRemove}
-          className="absolute top-1 right-1 p-2.5 rounded-xl text-red-700 hover:bg-red-50"
+          className={`${iconButtonClass.danger} absolute top-1 right-1`}
           aria-label={`Remove item ${index + 1}`}
         >
           <Trash2 className="w-4 h-4" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/lexend"; // self-hosted: no Google request at build or run time
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -10,16 +11,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1a5dd1", // --color-nav: matches the blue top bar on mobile
+  themeColor: "#1b455e", // --color-nav: matches the teal top bar on mobile
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body
-        className="h-full text-slate-900 antialiased"
-        style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
-      >
+      <body className="h-full font-sans text-slate-900 antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

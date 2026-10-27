@@ -8,7 +8,7 @@ import type { PartyDTO } from "@/lib/types";
 import { PartyForm } from "@/components/parties/PartyForm";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
 import { Loading } from "@/components/ui/Spinner";
-import { buttonClass, cardClass, chipClass } from "@/components/ui/styles";
+import { buttonClass, cardClass, chipClass, iconButtonClass } from "@/components/ui/styles";
 
 const TABS: { kind: PartyKind | "ALL"; label: string }[] = [
   { kind: "ALL", label: "Everyone" },
@@ -101,14 +101,14 @@ export default function PartiesPage() {
                 </div>
                 <button
                   onClick={() => setEditing({ mode: "edit", party: p })}
-                  className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100"
+                  className={iconButtonClass.edit}
                   aria-label={`Edit ${p.name}`}
                 >
                   <Pencil className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   onClick={() => remove(p)}
-                  className="p-2.5 rounded-xl text-red-700 hover:bg-red-50"
+                  className={iconButtonClass.danger}
                   aria-label={`Delete ${p.name}`}
                 >
                   <Trash2 className="w-4 h-4" aria-hidden="true" />

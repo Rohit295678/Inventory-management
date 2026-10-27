@@ -9,10 +9,10 @@ import { Alert, PageHeader } from "@/components/ui/PageHeader";
 import { InlineLoading } from "@/components/ui/Spinner";
 import { buttonClass, cardClass } from "@/components/ui/styles";
 
-// Buy and sell get distinct badge colours so they're told apart at a glance.
+// Buy and sell get distinct pastel badges so they're told apart at a glance.
 const CARD_STYLE: Record<TxType, { icon: typeof Truck; heading: string; badge: string }> = {
-  PURCHASE: { icon: Truck, heading: "Bought today", badge: "bg-brand-100 text-brand-800" },
-  SALE: { icon: ShoppingCart, heading: "Sold today", badge: "bg-accent-100 text-brand-800" },
+  PURCHASE: { icon: Truck, heading: "Bought today", badge: "bg-mint-100 text-brand-900" },
+  SALE: { icon: ShoppingCart, heading: "Sold today", badge: "bg-lilac-100 text-brand-900" },
 };
 
 function TodayCard({ type, today }: { type: TxType; today: string }) {
@@ -23,10 +23,10 @@ function TodayCard({ type, today }: { type: TxType; today: string }) {
   return (
     <section className={`${cardClass} p-4`} aria-labelledby={`today-${type}`}>
       <div className="flex items-center gap-3">
-        <span className={`inline-flex w-10 h-10 items-center justify-center rounded-xl ${badge}`} aria-hidden="true">
+        <span className={`inline-flex w-11 h-11 items-center justify-center rounded-full ${badge}`} aria-hidden="true">
           <Icon className="w-5 h-5" />
         </span>
-        <h2 id={`today-${type}`} className="font-semibold text-slate-800">
+        <h2 id={`today-${type}`} className="font-medium text-brand-800">
           {heading}
         </h2>
       </div>
@@ -36,7 +36,7 @@ function TodayCard({ type, today }: { type: TxType; today: string }) {
       ) : (
         data && (
           <>
-            <p className="text-3xl font-bold text-slate-900 mt-3">{formatMoney(data.summary.totalAmount)}</p>
+            <p className="text-3xl font-medium tracking-tight text-brand-800 mt-3">{formatMoney(data.summary.totalAmount)}</p>
             <p className="text-sm text-slate-600">
               {plural(data.summary.bills, "bill")} · {formatKg(data.summary.totalWeightKg)}
             </p>

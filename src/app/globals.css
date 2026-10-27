@@ -1,44 +1,66 @@
 @import "tailwindcss";
 
 /*
- * THEME: the single place to change the app's colours (Flipkart-inspired).
- * brand  = Flipkart blue, anchored on #2874F0 (brand-600)
- * accent = Flipkart yellow, anchored on #FFE11B (accent-400)
- * nav-*  = semantic tokens for the blue bars (sidebar, top bar, login)
- * Components only use these tokens plus neutral slate, never raw palette names.
+ * THEME: the single place to change the app's colours.
+ * Calm "petrol + butter" look: deep teal sidebar, warm off-white canvas,
+ * butter-yellow active pill, white cards, pastel accents.
  *
- * Contrast notes (WCAG 2.2 AA needs 4.5:1 for normal text):
- *   white on brand-600 #2874F0 = 4.3:1, so it is NOT used behind small text
- *   white on brand-700 #1A5DD1 = 5.9:1, used for nav bars and buttons
- *   accent-400 on brand-700    = 4.5:1, used for active markers + focus ring
+ * brand  = petrol teal, anchored on #1B455E (brand-700: sidebar, primary buttons)
+ * accent = butter yellow, anchored on #F9D66B (accent-400: active nav pill, logo)
+ * nav-*  = semantic tokens for the dark surfaces (sidebar, mobile top bar)
+ * mint / lilac / aqua = pastel tints for badges (always with brand-900 text)
+ * Components only use these tokens plus neutral slate, never raw hex values.
+ *
+ * Contrast (WCAG 2.2 AA needs 4.5:1 for normal text), measured:
+ *   white      on brand-700 #1B455E = 10.2:1  nav, buttons
+ *   brand-900  on accent-400 #F9D66B =  9.9:1  active nav pill
+ *   brand-900  on any pastel tint     >= 11:1
+ *   brand-600  #2A5A70 on white      =  7.5:1  links, focus ring
+ *   accent-400 on brand-700          =  7.2:1  focus ring on dark surfaces
+ *   slate-600  on canvas             =  6.8:1  subtitles
  */
 @theme {
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dce8fe;
-  --color-brand-200: #bed4fd;
-  --color-brand-300: #90b7fa;
-  --color-brand-400: #5d97f6;
-  --color-brand-500: #3d84f3;
-  --color-brand-600: #2874f0;
-  --color-brand-700: #1a5dd1;
-  --color-brand-800: #174ea6;
-  --color-brand-900: #163f82;
-  --color-brand-950: #0f2a58;
+  --font-sans: "Lexend Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  --color-accent-50: #fffde6;
-  --color-accent-100: #fff7c2;
-  --color-accent-300: #ffeb5c;
-  --color-accent-400: #ffe11b;
-  --color-accent-500: #ffc200;
+  --color-brand-50: #eef4f6;
+  --color-brand-100: #dae7ec;
+  --color-brand-200: #b6cfd8;
+  --color-brand-300: #87aebd;
+  --color-brand-400: #5a8a9d;
+  --color-brand-500: #3b6e83;
+  --color-brand-600: #2a5a70;
+  --color-brand-700: #1b455e;
+  --color-brand-800: #163a4f;
+  --color-brand-900: #122f40;
+  --color-brand-950: #0b1f2b;
+
+  --color-accent-50: #fef9e9;
+  --color-accent-100: #fcf0c7;
+  --color-accent-300: #fae08f;
+  --color-accent-400: #f9d66b;
+  --color-accent-500: #f2c445;
+
+  --color-mint-100: #d7f0e2;
+  --color-mint-300: #a8dfc0;
+  --color-lilac-100: #e9e4f3;
+  --color-lilac-300: #d0c8e4;
+  --color-aqua-100: #d8ecee;
+  --color-aqua-300: #a9d4d7;
+
+  /* Warm neutrals: page canvas and hairline borders. */
+  --color-canvas: #f3f3ee;
+  --color-line: #e6e5dd;
 
   --color-nav: var(--color-brand-700);
-  --color-nav-active: var(--color-brand-800);
+  --color-nav-hover: #24536c;
+  --color-nav-active: var(--color-accent-400);
   --color-on-nav: #ffffff;
   --color-on-nav-muted: var(--color-brand-50);
+  --color-on-nav-active: var(--color-brand-900);
 }
 
 :root {
-  --background: #f1f3f6;
+  --background: var(--color-canvas);
   --foreground: #0f172a;
 }
 
@@ -53,7 +75,7 @@ body {
   outline-offset: 2px;
 }
 
-/* On the blue bars a blue ring would vanish, so use Flipkart yellow. */
+/* On the dark teal surfaces a teal ring would vanish, so use butter yellow. */
 .surface-dark :focus-visible {
   outline-color: var(--color-accent-400);
 }

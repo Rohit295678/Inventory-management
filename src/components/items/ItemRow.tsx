@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { formatKg, formatMoney, formatQty, formatQtyAndKg } from "@/lib/format";
 import type { ItemDTO, SupplierBought } from "@/lib/types";
+import { iconButtonClass } from "@/components/ui/styles";
 
 // "Rs 40.00/kg", or "Rs 38.00-42.00/kg" when a supplier's price changed between bills.
 function supplierRate(s: SupplierBought): string {
@@ -60,16 +61,16 @@ export function ItemRow({ item, onEdit, onDelete }: { item: ItemDTO; onEdit: () 
           {!byKg && <p className="text-xs text-slate-600">{formatKg(item.stock.weightKg)}</p>}
           <span className="sr-only">in stock{out ? " (out of stock)" : ""}</span>
         </div>
-        <button onClick={onEdit} className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100" aria-label={`Edit ${item.name}`}>
+        <button onClick={onEdit} className={iconButtonClass.edit} aria-label={`Edit ${item.name}`}>
           <Pencil className="w-4 h-4" aria-hidden="true" />
         </button>
-        <button onClick={onDelete} className="p-2.5 rounded-xl text-red-700 hover:bg-red-50" aria-label={`Delete ${item.name}`}>
+        <button onClick={onDelete} className={iconButtonClass.danger} aria-label={`Delete ${item.name}`}>
           <Trash2 className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 
       {bought.weightKg > 0 ? (
-        <div className="mt-2 rounded-xl bg-brand-50 border border-brand-100 px-3 py-2">
+        <div className="mt-2 rounded-2xl bg-brand-50 border border-brand-100 px-4 py-2.5">
           {/* Each label stays glued to its number when the line wraps on phones. */}
           <p className="text-sm text-slate-800">
             <span className="whitespace-nowrap">

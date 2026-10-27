@@ -53,7 +53,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           <p className="text-on-nav-muted">Buy, sell &amp; track your goods</p>
         </div>
         <div className={`${cardClass} p-6 sm:p-8 shadow-xl`}>
-          <h1 className="text-2xl font-semibold mb-6 text-slate-900">{isRegister ? "Create account" : "Welcome back"}</h1>
+          <h1 className="text-3xl font-normal tracking-tight mb-6 text-brand-800">{isRegister ? "Create account" : "Welcome back"}</h1>
           <Alert message={error} />
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && <Field label="Your name" name="name" autoComplete="name" />}

@@ -29,16 +29,16 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <aside className="surface-dark w-72 shrink-0 bg-nav text-on-nav-muted flex flex-col h-screen sticky top-0">
-      <div className="p-5 border-b border-white/15 flex items-center justify-between">
+      <div className="p-5 border-b border-white/10 flex items-center justify-between">
         <Logo tone="light" tagline="Inventory manager" />
         {onClose && (
-          <button onClick={onClose} aria-label="Close menu" className="p-2.5 rounded-xl text-on-nav hover:bg-nav-active">
+          <button onClick={onClose} aria-label="Close menu" className="p-2.5 rounded-full text-on-nav hover:bg-nav-hover">
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         )}
       </div>
 
-      <nav aria-label="Main" className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav aria-label="Main" className="flex-1 p-4 space-y-1.5 overflow-y-auto">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
@@ -47,22 +47,21 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
               href={href}
               onClick={onClose}
               aria-current={active ? "page" : undefined}
-              className={`relative flex items-center gap-3 px-3 min-h-11 rounded-xl text-sm font-medium transition ${
-                active ? "bg-nav-active text-on-nav" : "text-on-nav-muted hover:bg-nav-active/60 hover:text-on-nav"
+              className={`flex items-center gap-3 px-4 min-h-12 rounded-full text-sm font-medium transition motion-reduce:transition-none ${
+                active ? "bg-nav-active text-on-nav-active" : "text-on-nav-muted hover:bg-nav-hover hover:text-on-nav"
               }`}
             >
-              {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-accent-400" aria-hidden="true" />}
-              <Icon className={`w-5 h-5 ${active ? "text-accent-400" : ""}`} aria-hidden="true" />
+              <Icon className="w-5 h-5" aria-hidden="true" />
               {label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/15">
+      <div className="p-4 border-t border-white/10">
         <div className="flex items-center gap-3 px-2 mb-2">
           <div
-            className="w-9 h-9 rounded-full bg-accent-400 flex items-center justify-center text-brand-800 font-bold"
+            className="w-10 h-10 rounded-full bg-accent-400 flex items-center justify-center text-on-nav-active font-semibold"
             aria-hidden="true"
           >
             {(user?.name ?? user?.email ?? "U")[0].toUpperCase()}
@@ -74,7 +73,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-2 px-3 min-h-11 text-sm text-on-nav hover:bg-nav-active rounded-xl"
+          className="w-full flex items-center gap-2 px-4 min-h-11 text-sm text-on-nav hover:bg-nav-hover rounded-full"
         >
           <LogOut className="w-4 h-4" aria-hidden="true" /> Sign out
         </button>
