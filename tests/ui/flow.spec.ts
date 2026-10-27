@@ -45,6 +45,7 @@ test("full buy & sell flow", async ({ page }) => {
   await page.goto("/parties");
   for (const [name, role] of [
     ["Ramesh Traders", "SUPPLIER"],
+    ["Shyam & Co", "SUPPLIER"],
     ["Sita Stores", "CUSTOMER"],
   ]) {
     await page.getByRole("button", { name: "New person" }).click();
@@ -88,6 +89,17 @@ test("full buy & sell flow", async ({ page }) => {
   await page.getByRole("link", { name: "PDF" }).click();
   expect((await download).suggestedFilename()).toMatch(/^purchases-.*\.pdf$/);
 
+  // Same rice from a second supplier, cheaper: 10 packets x 26 kg @ 44/kg
+  await page.getByRole("button", { name: "New purchase" }).click();
+  await form.getByLabel("Supplier").selectOption({ label: "Shyam & Co" });
+  const shyam = form.getByRole("group", { name: "Item 1" });
+  await shyam.getByLabel("Item", { exact: true }).selectOption({ label: "Basmati Rice (Rice)" });
+  await shyam.getByLabel("Quantity (packet)").fill("10");
+  await shyam.getByLabel("Weight per packet (kg)").fill("26");
+  await shyam.getByLabel("Price per kg (₹)").fill("44");
+  await form.getByRole("button", { name: "Save purchase" }).click();
+  await expect(page.getByRole("article", { name: /Shyam & Co/ })).toBeVisible();
+
   // Sale: 10 packets rice
   await page.goto("/sales");
   await page.getByRole("button", { name: "New sale" }).click();
@@ -104,14 +116,32 @@ test("full buy & sell flow", async ({ page }) => {
   await expect(page.getByRole("article", { name: /Sita Stores/ })).toBeVisible();
   await expect(page.getByText("10 packets × 25 kg (250 kg)")).toBeVisible();
 
-  // Stock = 50 - 10 packets; prices = what was paid to suppliers
+  // Items & stock. Rice: bought 50 + 10 = 60 packets, sold 10 -> 50 in stock.
   await page.goto("/items");
-  await expect(page.getByText("1,000 kg")).toBeVisible();
-  await expect(page.getByText("40 packets")).toBeVisible();
-  await expect(page.getByText("Bought 1,250 kg (50 packets) · avg ₹50.00/kg · total ₹62,500.00")).toBeVisible();
+  await expect(page.getByText("50 packets", { exact: true })).toBeVisible(); // stock, count first
+  await expect(page.getByText("1,260 kg", { exact: true })).toBeVisible(); //   ...kg second
+  // Tiles: 73,940 + 1,800 spent; packets before weight
+  const tiles = page.getByRole("definition");
+  await expect(tiles.filter({ hasText: "₹75,740.00" })).toBeVisible();
+  await expect(page.getByText("Packets bought")).toBeVisible();
+  await expect(tiles.filter({ hasText: "60 packets" })).toBeVisible();
+  await expect(tiles.filter({ hasText: "1,530 kg" })).toBeVisible();
+  // Highlighted total, weighted avg: 73,940 / 1,510 kg = 48.97
+  await expect(page.getByText("Bought 60 packets (1,510 kg) · avg ₹48.97/kg · total ₹73,940.00")).toBeVisible();
+  // ...and per supplier, at their own prices
+  await expect(page.getByText("Ramesh Traders · 50 packets (1,250 kg)")).toBeVisible();
+  await expect(page.getByText("₹50.00/kg · ₹62,500.00")).toBeVisible();
+  await expect(page.getByText("Shyam & Co · 10 packets (260 kg)")).toBeVisible();
+  await expect(page.getByText("₹44.00/kg · ₹11,440.00")).toBeVisible();
+  // Dal had one supplier: just a "From ..." line
   await expect(page.getByText("Bought 20 kg · avg ₹90.00/kg · total ₹1,800.00")).toBeVisible();
-  await expect(page.getByRole("definition").filter({ hasText: "₹64,300.00" })).toBeVisible(); // total bought
+  await expect(page.getByText("From Ramesh Traders")).toBeVisible();
   await shot(page, "05-stock");
+
+  // New items default to "packet"
+  await page.getByRole("button", { name: "New item" }).click();
+  await expect(page.getByLabel("Counted in")).toHaveValue("packet");
+  await page.getByRole("button", { name: "Cancel" }).click();
 
   await page.goto("/dashboard");
   await expect(page.getByText("₹15,000.00").first()).toBeVisible();

@@ -47,7 +47,7 @@ export function ItemForm({ item, onSaved, onCancel }: Props) {
         <TypeSelect defaultTypeId={item?.type.id} />
         <Field label="Counted in" hint="How you count it on a bill. Price is always per kg.">
           {(id) => (
-            <select id={id} name="unit" defaultValue={item?.unit ?? "kg"} className={inputClass}>
+            <select id={id} name="unit" defaultValue={item?.unit ?? "packet"} className={inputClass}>
               {UNITS.map((u) => (
                 <option key={u} value={u}>
                   {u}

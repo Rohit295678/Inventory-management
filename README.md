@@ -71,7 +71,7 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | POST | `/api/mobile/login` | `{ email, password }` → `{ token, user }` |
 | GET | `/api/mobile/me` | Validate a stored token |
 | GET/POST | `/api/item-types` | The user's own types of goods (A-Z) / create `{ name }` (409 if it exists, any case) |
-| GET/POST | `/api/items` | List (with `stock` and `bought`: weight, total cost, avg price/kg) / create `{ name, typeId, unit, details? }` |
+| GET/POST | `/api/items` | List (with `stock`, `bought` totals and `suppliers`: per-supplier qty, kg, total, avg and min/max price/kg) / create `{ name, typeId, unit, details? }` |
 | PATCH/DELETE | `/api/items?id=` | Delete is refused while the item is on a bill |
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |

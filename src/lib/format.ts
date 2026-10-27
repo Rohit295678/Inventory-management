@@ -26,6 +26,11 @@ export function formatQty(quantity: number, unit: string): string {
   return unit === "kg" ? formatKg(quantity) : plural(quantity, unit);
 }
 
+// Count first, weight second: "30 packets (780 kg)"; kg items just "20 kg".
+export function formatQtyAndKg(amount: { quantity: number; weightKg: number }, unit: string): string {
+  return unit === "kg" ? formatKg(amount.weightKg) : `${plural(amount.quantity, unit)} (${formatKg(amount.weightKg)})`;
+}
+
 // One bill line's quantity: "20 kg" or "50 packets × 25 kg".
 // Lines saved before per-unit weight existed just show "50 packets".
 export function formatLineQty(line: { quantity: number; unit: string; weightPerUnitKg: number | null }): string {

@@ -159,6 +159,29 @@ test("daily view: today's purchases summary", async () => {
   assert.equal(forCustomer.data.transactions.length, 1);
 });
 
+test("items: same item from two suppliers at different prices", async () => {
+  ids.supplier2 = (await call("POST", "/api/parties", { name: "Shyam & Co", kind: "SUPPLIER" })).data.id;
+  const buy = (partyId: string, quantity: number, weightPerUnitKg: number, ratePerKg: number) =>
+    call("POST", "/api/transactions", {
+      type: "PURCHASE",
+      partyId,
+      date: today,
+      lines: [{ itemId: ids.rice, quantity, weightPerUnitKg, ratePerKg }],
+    });
+  assert.equal((await buy(ids.supplier2, 10, 26, 44)).status, 201); // 260 kg = 11,440
+  assert.equal((await buy(ids.supplier, 5, 25, 52)).status, 201); // Ramesh again, dearer: 125 kg = 6,500
+
+  const rice = (await call("GET", "/api/items")).data.find((i: { id: string }) => i.id === ids.rice);
+  // 62,500 + 11,440 + 6,500 = 80,440 for 1,250 + 260 + 125 = 1,635 kg -> 49.20/kg (weighted)
+  assert.deepEqual(rice.bought, { quantity: 65, weightKg: 1635, totalCost: 80440, avgRatePerKg: 49.2 });
+  assert.deepEqual(rice.suppliers, [
+    // Ramesh: 69,000 / 1,375 kg = 50.18, paid 50 then 52 -> range
+    { partyId: ids.supplier, partyName: "Ramesh Traders", quantity: 55, weightKg: 1375, totalCost: 69000, avgRatePerKg: 50.18, minRatePerKg: 50, maxRatePerKg: 52 },
+    { partyId: ids.supplier2, partyName: "Shyam & Co", quantity: 10, weightKg: 260, totalCost: 11440, avgRatePerKg: 44, minRatePerKg: 44, maxRatePerKg: 44 },
+  ]);
+  assert.deepEqual(rice.stock, { quantity: 55, weightKg: 1385 }); // 65 bought - 10 sold
+});
+
 test("pdf: downloads a real PDF", async () => {
   const res = await call("GET", `/api/reports/pdf?type=PURCHASE&from=${today}&to=${today}`);
   assert.equal(res.status, 200);
@@ -173,7 +196,9 @@ test("deletes: guarded while in use, then allowed", async () => {
   assert.equal((await call("DELETE", `/api/parties?id=${ids.supplier}`)).status, 409);
 
   const purchases = await call("GET", "/api/transactions?type=PURCHASE");
-  assert.equal((await call("DELETE", `/api/transactions?id=${purchases.data.transactions[0].id}`)).status, 200);
+  for (const tx of purchases.data.transactions) {
+    assert.equal((await call("DELETE", `/api/transactions?id=${tx.id}`)).status, 200);
+  }
   assert.equal((await call("DELETE", `/api/items?id=${ids.dal}`)).status, 200);
   assert.equal((await call("DELETE", `/api/parties?id=${ids.supplier}`)).status, 200);
 });

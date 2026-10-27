@@ -1,65 +1,39 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { api, errorMessage, useApi } from "@/lib/api-client";
 import { formatKg, formatMoney, formatQty } from "@/lib/format";
 import { round2, round3 } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { ItemForm } from "@/components/items/ItemForm";
+import { ItemRow } from "@/components/items/ItemRow";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
 import { Loading } from "@/components/ui/Spinner";
-import { StatTiles } from "@/components/ui/StatTiles";
+import { StatTiles, type Stat } from "@/components/ui/StatTiles";
 import { buttonClass, cardClass } from "@/components/ui/styles";
 
 type Editing = { mode: "closed" } | { mode: "new" } | { mode: "edit"; item: ItemDTO };
 
-// Stock on the right, what was paid to suppliers underneath.
-function ItemRow({ item, onEdit, onDelete }: { item: ItemDTO; onEdit: () => void; onDelete: () => void }) {
-  const out = item.stock.weightKg <= 0;
-  const { bought } = item;
+// Counted goods bought, per unit: packets aren't added to bags. kg items are
+// left out here; they're in "Weight bought". -> "Packets bought: 30 packets"
+function countedTile(items: ItemDTO[]): Stat {
+  const byUnit = new Map<string, number>();
+  for (const i of items) if (i.unit !== "kg") byUnit.set(i.unit, (byUnit.get(i.unit) ?? 0) + i.bought.quantity);
 
-  return (
-    <li className="p-3 sm:p-4">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-slate-900">{item.name}</p>
-          {item.details && <p className="text-xs text-slate-600 truncate">{item.details}</p>}
-        </div>
-        <div className="text-right">
-          <p className={`font-semibold ${out ? "text-red-700" : "text-brand-800"}`}>{formatKg(item.stock.weightKg)}</p>
-          {item.unit !== "kg" && <p className="text-xs text-slate-600">{formatQty(item.stock.quantity, item.unit)}</p>}
-          <span className="sr-only">in stock{out ? " (out of stock)" : ""}</span>
-        </div>
-        <button onClick={onEdit} className="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100" aria-label={`Edit ${item.name}`}>
-          <Pencil className="w-4 h-4" aria-hidden="true" />
-        </button>
-        <button onClick={onDelete} className="p-2.5 rounded-xl text-red-700 hover:bg-red-50" aria-label={`Delete ${item.name}`}>
-          <Trash2 className="w-4 h-4" aria-hidden="true" />
-        </button>
-      </div>
-      <p className="mt-1.5 text-xs text-slate-700">
-        {bought.weightKg > 0 ? (
-          // Each label stays glued to its number when the line wraps on phones.
-          <>
-            <span className="whitespace-nowrap">
-              Bought {formatKg(bought.weightKg)}
-              {item.unit !== "kg" && ` (${formatQty(bought.quantity, item.unit)})`}
-            </span>{" "}
-            ·{" "}
-            <span className="whitespace-nowrap">
-              avg <span className="font-semibold text-slate-900">{formatMoney(bought.avgRatePerKg)}/kg</span>
-            </span>{" "}
-            ·{" "}
-            <span className="whitespace-nowrap">
-              total <span className="font-semibold text-slate-900">{formatMoney(bought.totalCost)}</span>
-            </span>
-          </>
-        ) : (
-          "Not bought yet"
-        )}
-      </p>
-    </li>
-  );
+  const units = [...byUnit.keys()];
+  const label = units.length > 1 ? "Quantity bought" : `${units[0] ?? "packet"}s bought`;
+  const value = units.length ? units.map((u) => formatQty(round2(byUnit.get(u)!), u)).join(" · ") : formatQty(0, "packet");
+  return { label: label[0].toUpperCase() + label.slice(1), value };
+}
+
+function totalTiles(items: ItemDTO[]): Stat[] {
+  const sum = (pick: (i: ItemDTO) => number) => items.reduce((acc, i) => acc + pick(i), 0);
+  return [
+    { label: "Total bought", value: formatMoney(round2(sum((i) => i.bought.totalCost))) },
+    countedTile(items),
+    { label: "Weight bought", value: formatKg(round3(sum((i) => i.bought.weightKg))) },
+    { label: "Items", value: String(items.length) },
+  ];
 }
 
 export default function ItemsPage() {
@@ -73,14 +47,7 @@ export default function ItemsPage() {
     return [...groups.entries()];
   }, [items]);
 
-  const totals = useMemo(() => {
-    const list = items ?? [];
-    return [
-      { label: "Total bought", value: formatMoney(round2(list.reduce((sum, i) => sum + i.bought.totalCost, 0))) },
-      { label: "Weight bought", value: formatKg(round3(list.reduce((sum, i) => sum + i.bought.weightKg, 0))) },
-      { label: "Items", value: String(list.length) },
-    ];
-  }, [items]);
+  const totals = useMemo(() => totalTiles(items ?? []), [items]);
 
   async function remove(item: ItemDTO) {
     if (!confirm(`Delete "${item.name}"?`)) return;

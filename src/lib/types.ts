@@ -8,7 +8,19 @@ export type Stock = { quantity: number; weightKg: number };
 // What was paid to suppliers for an item, across all purchases.
 export type Bought = Stock & { totalCost: number; avgRatePerKg: number };
 
-export type ItemStats = { stock: Stock; bought: Bought };
+// The same, from one supplier. min/max show if their price changed per bill.
+export type SupplierBought = Bought & {
+  partyId: string;
+  partyName: string;
+  minRatePerKg: number;
+  maxRatePerKg: number;
+};
+
+export type ItemStats = {
+  stock: Stock;
+  bought: Bought; // = sum of `suppliers`
+  suppliers: SupplierBought[]; // biggest spend first
+};
 
 // The user's own "type of goods" (Rice, Pulse, ...). Per user, not global.
 export type ItemTypeDTO = { id: string; name: string };
