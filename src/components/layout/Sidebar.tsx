@@ -2,13 +2,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { LayoutGrid, LogOut, Package, ShoppingCart, Truck, Users, X } from "lucide-react";
+import { Banknote, HandCoins, LayoutGrid, LogOut, Package, ShoppingCart, Truck, Users, X } from "lucide-react";
+import { PAYMENT_COPY } from "@/lib/domain";
 import { Logo } from "@/components/ui/Logo";
 
 const NAV = [
   { href: "/dashboard", label: "Today", icon: LayoutGrid },
   { href: "/purchases", label: "Purchases (Buy)", icon: Truck },
   { href: "/sales", label: "Sales (Sell)", icon: ShoppingCart },
+  { href: PAYMENT_COPY.SALE.href, label: PAYMENT_COPY.SALE.nav, icon: HandCoins },
+  { href: PAYMENT_COPY.PURCHASE.href, label: PAYMENT_COPY.PURCHASE.nav, icon: Banknote },
   { href: "/items", label: "Items & Stock", icon: Package },
   { href: "/parties", label: "People", icon: Users },
 ] as const;

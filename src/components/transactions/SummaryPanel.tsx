@@ -9,6 +9,7 @@ export function SummaryPanel({ type, summary }: { type: TxType; summary: Summary
   const copy = TX_COPY[type];
   const stats = [
     { label: "Total amount", value: formatMoney(summary.totalAmount) },
+    { label: "Due", value: formatMoney(summary.totalDue) },
     { label: "Total weight", value: formatKg(summary.totalWeightKg) },
     { label: "Bills", value: String(summary.bills) },
   ];

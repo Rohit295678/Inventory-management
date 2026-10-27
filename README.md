@@ -75,9 +75,13 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | PATCH/DELETE | `/api/items?id=` | Delete is refused while the item is on a bill |
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |
-| GET | `/api/transactions?type=&from=&to=&partyId=` | → `{ transactions, summary }` |
+| GET | `/api/transactions?type=&from=&to=&partyId=&status=open` | → `{ transactions, summary }`; each bill has `paid`, `due`, `settledAt`, `payments[]` (date + amount); `status=open` = not settled |
 | POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg }] }` |
-| DELETE | `/api/transactions?id=` | |
+| PATCH | `/api/transactions?id=` | `{ settled: true\|false }`; settling needs the bill fully paid |
+| DELETE | `/api/transactions?id=` | 409 while payments sit on the bill |
+| GET | `/api/payments?type=SALE\|PURCHASE&from=&to=&partyId=` | → `{ payments, summary: { count, totalAmount } }`. SALE = received from customers, PURCHASE = paid to suppliers |
+| POST | `/api/payments` | `{ type, partyId, date, amount, note?, allocations: [{ transactionId, amount }] }`; allocations must add up to `amount`, each ≤ what is due |
+| DELETE | `/api/payments?id=` | The bills it paid become due (and unsettled) again |
 | GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf` |
 
 **Pricing rule** (`src/lib/pricing.ts`, shared by server and form): items counted

@@ -1,9 +1,12 @@
 import { Trash2 } from "lucide-react";
 import { formatDate, formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import type { TransactionDTO } from "@/lib/types";
+import { BillPaymentStatus } from "@/components/payments/BillPaymentStatus";
 import { cardClass, iconButtonClass } from "@/components/ui/styles";
 
-export function TransactionCard({ tx, onDelete }: { tx: TransactionDTO; onDelete: (tx: TransactionDTO) => void }) {
+type Props = { tx: TransactionDTO; onDelete: (tx: TransactionDTO) => void; onSettled: () => void };
+
+export function TransactionCard({ tx, onDelete, onSettled }: Props) {
   return (
     <article className={`${cardClass} p-3 sm:p-4`} aria-label={`${tx.party.name}, ${formatDate(tx.date)}`}>
       <header className="flex items-start gap-3">
@@ -35,6 +38,7 @@ export function TransactionCard({ tx, onDelete }: { tx: TransactionDTO; onDelete
           </li>
         ))}
       </ul>
+      <BillPaymentStatus bill={tx} onSettled={onSettled} />
     </article>
   );
 }

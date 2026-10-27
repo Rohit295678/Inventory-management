@@ -1,17 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { shot, tile } from "./helpers";
 
 // One realistic day in the shop: sign up, add goods and people, record a
 // multi-item purchase and a sale, then check totals, stock and the PDF.
-// Screenshots land in test-results/screens for a quick visual review.
-// animations: "disabled" fast-forwards CSS transitions to their end state;
-// headless Chrome otherwise captures pills mid-fade (looks washed out).
-
-const shot = (page: Page, name: string) =>
-  page.screenshot({
-    path: `test-results/screens/${test.info().project.name}-${name}.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
 
 test("full buy & sell flow", async ({ page }) => {
   await page.goto("/register");
@@ -81,7 +72,8 @@ test("full buy & sell flow", async ({ page }) => {
 
   await form.getByRole("button", { name: "Save purchase" }).click();
   await expect(page.getByRole("article", { name: /Ramesh Traders/ })).toBeVisible();
-  await expect(page.getByRole("definition").filter({ hasText: "₹64,300.00" })).toBeVisible();
+  await expect(tile(page, "Total amount")).toHaveText("₹64,300.00");
+  await expect(tile(page, "Due")).toHaveText("₹64,300.00"); // nothing paid yet
   await shot(page, "04-purchases-today");
 
   // PDF download uses the same filters
