@@ -62,9 +62,13 @@ export type TransactionDTO = {
   paid: number; // sum of payments put on this bill
   due: number; // totalAmount - paid
   settledAt: string | null; // ISO timestamp; null = still open
+  payments: BillPaymentDTO[]; // oldest first: "on which date, how much"
   party: { id: string; name: string };
   lines: TxLineDTO[];
 };
+
+// One payment's share of a bill, as seen from the bill.
+export type BillPaymentDTO = { paymentId: string; date: string; amount: number };
 
 export type ItemSummary = {
   itemId: string;

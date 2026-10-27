@@ -279,6 +279,25 @@ test("payments: list newest first, filter by date and person", async () => {
   assert.equal((await call("GET", "/api/payments?type=PURCHASE")).data.summary.count, 0); // separate tab
 });
 
+test("payments: each bill lists its payments (date + amount), and so does the PDF", async () => {
+  const big = (await openSaleBills()).find((b) => b.id === ids.bigSale) as Bill & { payments: { date: string; amount: number }[] };
+  assert.deepEqual(
+    big.payments.map((p) => [p.date, p.amount]),
+    [
+      ["2026-01-02", 1000], // oldest first
+      [today, 2000],
+    ]
+  );
+
+  const pdf = await call("GET", `/api/reports/pdf?type=SALE&partyId=${ids.customer}`);
+  assert.equal(pdf.status, 200);
+  const text = new TextDecoder("latin1").decode(pdf.data as ArrayBuffer);
+  assert.ok(text.includes("Received on 02 Jan 2026"), "payment date line missing");
+  assert.ok(text.includes("Rs. 1,000.00") && text.includes("Rs. 2,000.00"), "payment amounts missing");
+  assert.ok(text.includes("Due Rs. 12,000.00"), "due line missing");
+  assert.ok(text.includes("Nothing received yet"), "unpaid bill status missing");
+});
+
 test("pdf: downloads a real PDF", async () => {
   const res = await call("GET", `/api/reports/pdf?type=PURCHASE&from=${today}&to=${today}`);
   assert.equal(res.status, 200);

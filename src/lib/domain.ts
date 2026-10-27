@@ -26,6 +26,13 @@ export const TX_COPY: Record<
   SALE: { title: "Sales", noun: "sale", party: "Customer", href: "/sales", slug: "sales" },
 };
 
+// Payments follow the bills they pay: SALE bills -> money received from
+// customers, PURCHASE bills -> money paid to suppliers. One tab each.
+export const PAYMENT_COPY: Record<TxType, { title: string; nav: string; verb: string; party: string; href: string }> = {
+  SALE: { title: "Payments received", nav: "Received (Customers)", verb: "Received", party: "Customer", href: "/payments/received" },
+  PURCHASE: { title: "Payments made", nav: "Paid (Suppliers)", verb: "Paid", party: "Supplier", href: "/payments/made" },
+};
+
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // Local-calendar "today" as YYYY-MM-DD (toISOString would use UTC and flip

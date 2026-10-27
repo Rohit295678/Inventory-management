@@ -53,7 +53,10 @@ export async function assertPartyFits(userId: string, partyId: string, type: TxT
 const TX_INCLUDE = {
   party: { select: { id: true, name: true } },
   lines: { include: { item: { select: { name: true } } }, orderBy: { id: "asc" } },
-  allocations: { select: { amount: true } },
+  allocations: {
+    select: { amount: true, payment: { select: { id: true, date: true } } },
+    orderBy: [{ payment: { date: "asc" } }, { payment: { createdAt: "asc" } }],
+  },
 } satisfies Prisma.TransactionInclude;
 
 type TxRow = Prisma.TransactionGetPayload<{ include: typeof TX_INCLUDE }>;
@@ -73,6 +76,7 @@ function toDTO(tx: TxRow): TransactionDTO {
     totalAmount: tx.totalAmount,
     ...paidAndDue(tx.totalAmount, tx.allocations),
     settledAt: tx.settledAt?.toISOString() ?? null,
+    payments: tx.allocations.map((a) => ({ paymentId: a.payment.id, date: toISODate(a.payment.date), amount: a.amount })),
     party: tx.party,
     lines: tx.lines.map((l) => ({
       id: l.id,
