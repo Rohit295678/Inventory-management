@@ -7,10 +7,14 @@ export function summarize(transactions: ReadonlyArray<TransactionDTO>): Summary 
   const byItem = new Map<string, ItemSummary>();
   const byParty = new Map<string, PartySummary>();
   let totalAmount = 0;
+  let totalPaid = 0;
+  let totalDue = 0;
   let totalWeightKg = 0;
 
   for (const tx of transactions) {
     totalAmount += tx.totalAmount;
+    totalPaid += tx.paid;
+    totalDue += tx.due;
 
     const party = byParty.get(tx.party.id) ?? {
       partyId: tx.party.id,
@@ -54,6 +58,8 @@ export function summarize(transactions: ReadonlyArray<TransactionDTO>): Summary 
   return {
     bills: transactions.length,
     totalAmount: round2(totalAmount),
+    totalPaid: round2(totalPaid),
+    totalDue: round2(totalDue),
     totalWeightKg: round3(totalWeightKg),
     byItem: items.sort((a, b) => b.totalCost - a.totalCost),
     byParty: parties.sort((a, b) => b.totalAmount - a.totalAmount),

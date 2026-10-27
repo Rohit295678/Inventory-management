@@ -58,3 +58,22 @@ export const transactionSchema = z.object({
 });
 
 export type TransactionInput = z.infer<typeof transactionSchema>;
+
+// A payment split across one or more bills of the same person.
+export const allocationSchema = z.object({
+  transactionId: z.string().min(1, "Pick a bill"),
+  amount: z.number().positive("Amount on a bill must be greater than 0"),
+});
+
+export const paymentSchema = z.object({
+  type: z.enum(TX_TYPES), // SALE = received from a customer, PURCHASE = paid to a supplier
+  partyId: z.string().min(1, "Pick a person"),
+  date: isoDate,
+  amount: z.number().positive("Enter an amount greater than 0"),
+  note: optionalText(300),
+  allocations: z.array(allocationSchema).min(1, "Put the amount on at least one bill").max(200),
+});
+
+export type PaymentInput = z.infer<typeof paymentSchema>;
+
+export const settleSchema = z.object({ settled: z.boolean() });

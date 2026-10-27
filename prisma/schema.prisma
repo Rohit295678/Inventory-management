@@ -82,18 +82,18 @@ model Party {
 
 // One purchase bill or one sale bill.
 model Transaction {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
   type        String // PURCHASE | SALE
-  partyId     String   @map("party_id")
-  date        DateTime @db.Date
+  partyId     String    @map("party_id")
+  date        DateTime  @db.Date
   note        String?
   // Denormalised sum of line totals, written once on create.
-  totalAmount Float    @map("total_amount")
+  totalAmount Float     @map("total_amount")
   // Set when the user marks a fully paid bill as settled; it then leaves the
   // payments screen. Null = still open.
   settledAt   DateTime? @map("settled_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   party       Party               @relation(fields: [partyId], references: [id], onDelete: NoAction)
@@ -106,17 +106,17 @@ model Transaction {
 }
 
 model TransactionLine {
-  id            String @id @default(cuid())
-  transactionId String @map("transaction_id")
-  itemId        String @map("item_id")
-  quantity      Float // count in `unit`, e.g. 50 (packets)
-  unit          String // snapshot of Item.unit at the time of the bill
+  id              String @id @default(cuid())
+  transactionId   String @map("transaction_id")
+  itemId          String @map("item_id")
+  quantity        Float // count in `unit`, e.g. 50 (packets)
+  unit            String // snapshot of Item.unit at the time of the bill
   // Weight of ONE unit, e.g. 25 (kg per packet). Null for items counted in kg,
   // and for lines saved before this column existed.
   weightPerUnitKg Float? @map("weight_per_unit_kg")
-  weightKg      Float  @map("weight_kg") // total = quantity x weightPerUnitKg
-  ratePerKg     Float  @map("rate_per_kg")
-  totalCost     Float  @map("total_cost")
+  weightKg        Float  @map("weight_kg") // total = quantity x weightPerUnitKg
+  ratePerKg       Float  @map("rate_per_kg")
+  totalCost       Float  @map("total_cost")
 
   transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   item        Item        @relation(fields: [itemId], references: [id], onDelete: NoAction)

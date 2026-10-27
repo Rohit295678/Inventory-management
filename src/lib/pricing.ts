@@ -32,6 +32,10 @@ export const round2 = (n: number) => roundTo(n, 2);
 // Weight: 3 decimals (grams), so 7 x 0.125 kg stays 0.875 kg.
 export const round3 = (n: number) => roundTo(n, 3);
 
+// Compare money in whole paise: 0.1 + 0.2 !== 0.3 in floating point, and a
+// bill must never be stuck at "Rs 0.00 due" because of it.
+export const toPaise = (rupees: number) => Math.round(rupees * 100);
+
 const isPositive = (n: number | null | undefined): n is number =>
   typeof n === "number" && Number.isFinite(n) && n > 0;
 

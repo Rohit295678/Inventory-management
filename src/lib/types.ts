@@ -59,6 +59,9 @@ export type TransactionDTO = {
   date: string; // YYYY-MM-DD
   note: string | null;
   totalAmount: number;
+  paid: number; // sum of payments put on this bill
+  due: number; // totalAmount - paid
+  settledAt: string | null; // ISO timestamp; null = still open
   party: { id: string; name: string };
   lines: TxLineDTO[];
 };
@@ -78,9 +81,32 @@ export type PartySummary = { partyId: string; partyName: string; bills: number; 
 export type Summary = {
   bills: number;
   totalAmount: number;
+  totalPaid: number;
+  totalDue: number;
   totalWeightKg: number;
   byItem: ItemSummary[];
   byParty: PartySummary[];
 };
 
 export type TransactionsResponse = { transactions: TransactionDTO[]; summary: Summary };
+
+// One payment, split across bills. type follows the bills: SALE = received
+// from a customer, PURCHASE = paid to a supplier.
+export type PaymentAllocationDTO = {
+  transactionId: string;
+  billDate: string; // YYYY-MM-DD
+  billTotal: number;
+  amount: number;
+};
+
+export type PaymentDTO = {
+  id: string;
+  type: TxType;
+  date: string; // YYYY-MM-DD
+  amount: number;
+  note: string | null;
+  party: { id: string; name: string };
+  allocations: PaymentAllocationDTO[]; // newest bill first
+};
+
+export type PaymentsResponse = { payments: PaymentDTO[]; summary: { count: number; totalAmount: number } };

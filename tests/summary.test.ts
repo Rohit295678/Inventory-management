@@ -15,15 +15,21 @@ const line = (itemId: string, itemName: string, unit: string, quantity: number, 
   ratePerKg: totalCost / weightKg,
 });
 
-const tx = (id: string, partyId: string, lines: TransactionDTO["lines"]): TransactionDTO => ({
-  id,
-  type: "PURCHASE",
-  date: "2026-10-25",
-  note: null,
-  party: { id: partyId, name: partyId.toUpperCase() },
-  lines,
-  totalAmount: lines.reduce((s, l) => s + l.totalCost, 0),
-});
+const tx = (id: string, partyId: string, lines: TransactionDTO["lines"], paid = 0): TransactionDTO => {
+  const totalAmount = lines.reduce((s, l) => s + l.totalCost, 0);
+  return {
+    id,
+    type: "PURCHASE",
+    date: "2026-10-25",
+    note: null,
+    party: { id: partyId, name: partyId.toUpperCase() },
+    lines,
+    totalAmount,
+    paid,
+    due: totalAmount - paid,
+    settledAt: null,
+  };
+};
 
 test("rolls up bills by item and by person", () => {
   const s = summarize([
@@ -55,6 +61,15 @@ test("same item in different units is not summed together", () => {
   assert.equal(s.byItem.length, 2);
 });
 
+test("paid and due add up across bills", () => {
+  const s = summarize([
+    tx("t1", "a", [line("rice", "Rice", "kg", 100, 100, 15000)], 3000), // part paid
+    tx("t2", "a", [line("dal", "Dal", "kg", 10, 10, 900)], 900), // fully paid
+  ]);
+  assert.equal(s.totalPaid, 3900);
+  assert.equal(s.totalDue, 12000);
+});
+
 test("empty input gives zeros", () => {
-  assert.deepEqual(summarize([]), { bills: 0, totalAmount: 0, totalWeightKg: 0, byItem: [], byParty: [] });
+  assert.deepEqual(summarize([]), { bills: 0, totalAmount: 0, totalPaid: 0, totalDue: 0, totalWeightKg: 0, byItem: [], byParty: [] });
 });

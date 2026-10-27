@@ -182,6 +182,103 @@ test("items: same item from two suppliers at different prices", async () => {
   assert.deepEqual(rice.stock, { quantity: 55, weightKg: 1385 }); // 65 bought - 10 sold
 });
 
+// ---- Payments: Sita Stores owes 15,000 for the rice sale and pays in parts.
+type Bill = { id: string; totalAmount: number; paid: number; due: number; settledAt: string | null };
+const openSaleBills = async (): Promise<Bill[]> =>
+  (await call("GET", `/api/transactions?type=SALE&partyId=${ids.customer}&status=open`)).data.transactions;
+const pay = (amount: number, allocations: { transactionId: string; amount: number }[], extra: object = {}) =>
+  call("POST", "/api/payments", { type: "SALE", partyId: ids.customer, date: today, amount, allocations, ...extra });
+
+test("payments: open bills come newest first with paid/due", async () => {
+  const small = await call("POST", "/api/transactions", {
+    type: "SALE",
+    partyId: ids.customer,
+    date: today,
+    lines: [{ itemId: ids.rice, quantity: 2, weightPerUnitKg: 25, ratePerKg: 10 }], // 500
+  });
+  ids.smallSale = small.data.id;
+
+  const bills = await openSaleBills();
+  assert.deepEqual(bills.map((b) => [b.totalAmount, b.paid, b.due]), [
+    [500, 0, 500], // newest first
+    [15000, 0, 15000],
+  ]);
+  ids.bigSale = bills[1].id;
+});
+
+test("payments: part payments over days reduce what is due", async () => {
+  const first = await pay(2000, [{ transactionId: ids.bigSale, amount: 2000 }], { note: "cash" });
+  assert.equal(first.status, 201, JSON.stringify(first.data));
+  assert.deepEqual(first.data.allocations.map((a: { amount: number }) => a.amount), [2000]);
+  assert.equal((await pay(1000, [{ transactionId: ids.bigSale, amount: 1000 }], { date: "2026-01-02" })).status, 201);
+
+  const big = (await openSaleBills()).find((b) => b.id === ids.bigSale)!;
+  assert.deepEqual([big.paid, big.due], [3000, 12000]);
+
+  // Sales page summary shows it too
+  const sales = await call("GET", `/api/transactions?type=SALE&partyId=${ids.customer}`);
+  assert.deepEqual([sales.data.summary.totalPaid, sales.data.summary.totalDue], [3000, 12500]);
+});
+
+test("payments: one payment split across two bills", async () => {
+  const res = await pay(600, [
+    { transactionId: ids.smallSale, amount: 500 }, // clears the small bill
+    { transactionId: ids.bigSale, amount: 100 },
+  ]);
+  assert.equal(res.status, 201, JSON.stringify(res.data));
+  ids.splitPayment = res.data.id;
+  const bills = await openSaleBills();
+  assert.deepEqual(bills.map((b) => b.due), [0, 11900]);
+});
+
+test("payments: rule violations are refused", async () => {
+  const big = (amount: number) => [{ transactionId: ids.bigSale, amount }];
+  assert.equal((await pay(500, big(400))).status, 400); // bills don't add up to the amount
+  assert.equal((await pay(20000, big(20000))).status, 400); // more than is due
+  assert.equal((await pay(1, [{ transactionId: ids.smallSale, amount: 1 }])).status, 400); // nothing due
+  assert.equal((await pay(2, [...big(1), ...big(1)])).status, 400); // same bill twice
+  assert.equal((await pay(10, [])).status, 400); // no bills
+  assert.equal((await pay(10, big(10), { partyId: ids.supplier })).status, 400); // supplier on a customer payment
+
+  const purchase = (await call("GET", "/api/transactions?type=PURCHASE")).data.transactions[0];
+  assert.equal((await pay(10, [{ transactionId: purchase.id, amount: 10 }])).status, 400); // not this person's sale bill
+});
+
+test("settle: only fully paid bills, then they leave the open list", async () => {
+  const settle = (id: string, settled = true) => call("PATCH", `/api/transactions?id=${id}`, { settled });
+  assert.equal((await settle(ids.bigSale)).status, 400); // 11,900 still due
+
+  const done = await settle(ids.smallSale);
+  assert.equal(done.status, 200);
+  assert.ok(done.data.settledAt);
+  assert.deepEqual((await openSaleBills()).map((b) => b.id), [ids.bigSale]);
+
+  // Can't pay a settled bill, and can't delete a bill that has payments
+  assert.equal((await pay(1, [{ transactionId: ids.smallSale, amount: 1 }])).status, 400);
+  assert.equal((await call("DELETE", `/api/transactions?id=${ids.smallSale}`)).status, 409);
+});
+
+test("payments: deleting one re-opens the bills it paid", async () => {
+  assert.equal((await call("DELETE", `/api/payments?id=${ids.splitPayment}`)).status, 200);
+  const bills = await openSaleBills();
+  const small = bills.find((b) => b.id === ids.smallSale)!;
+  assert.deepEqual([small.settledAt, small.due], [null, 500]); // back to open and due
+  assert.equal(bills.find((b) => b.id === ids.bigSale)!.due, 12000);
+});
+
+test("payments: list newest first, filter by date and person", async () => {
+  const all = await call("GET", "/api/payments?type=SALE");
+  assert.deepEqual(all.data.summary, { count: 2, totalAmount: 3000 });
+  assert.deepEqual(all.data.payments.map((p: { amount: number }) => p.amount), [2000, 1000]); // today, then 2 Jan
+  assert.equal(all.data.payments[0].party.name, "Sita Stores");
+  assert.equal(all.data.payments[0].note, "cash");
+
+  const todayOnly = await call("GET", `/api/payments?type=SALE&from=${today}&to=${today}`);
+  assert.equal(todayOnly.data.summary.count, 1);
+  assert.equal((await call("GET", `/api/payments?type=SALE&partyId=${ids.supplier}`)).data.summary.count, 0);
+  assert.equal((await call("GET", "/api/payments?type=PURCHASE")).data.summary.count, 0); // separate tab
+});
+
 test("pdf: downloads a real PDF", async () => {
   const res = await call("GET", `/api/reports/pdf?type=PURCHASE&from=${today}&to=${today}`);
   assert.equal(res.status, 200);
