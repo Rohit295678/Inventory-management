@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource-variable/lexend"; // self-hosted: no Google request at build or run time
 import "./globals.css";
 import { Providers } from "./providers";
 

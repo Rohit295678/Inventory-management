@@ -20,7 +20,8 @@
  *   slate-600  on canvas             =  6.8:1  subtitles
  */
 @theme {
-  --font-sans: "Lexend Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* The phone's own font: no download, looks native on Android and iOS. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --color-brand-50: #eef4f6;
   --color-brand-100: #dae7ec;

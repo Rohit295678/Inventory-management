@@ -23,6 +23,7 @@ model User {
   itemTypes    ItemType[]
   parties      Party[]
   transactions Transaction[]
+  payments     Payment[]
 
   @@map("users")
 }
@@ -73,6 +74,7 @@ model Party {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  payments     Payment[]
 
   @@index([userId, kind])
   @@map("parties")
@@ -88,11 +90,15 @@ model Transaction {
   note        String?
   // Denormalised sum of line totals, written once on create.
   totalAmount Float    @map("total_amount")
+  // Set when the user marks a fully paid bill as settled; it then leaves the
+  // payments screen. Null = still open.
+  settledAt   DateTime? @map("settled_at")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  party Party             @relation(fields: [partyId], references: [id], onDelete: NoAction)
-  lines TransactionLine[]
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  party       Party               @relation(fields: [partyId], references: [id], onDelete: NoAction)
+  lines       TransactionLine[]
+  allocations PaymentAllocation[]
 
   @@index([userId, type, date])
   @@index([partyId])
@@ -118,4 +124,42 @@ model TransactionLine {
   @@index([transactionId])
   @@index([itemId])
   @@map("transaction_lines")
+}
+
+// Money handed over for bills, paid in parts over days.
+// type = the bills it pays: SALE = received from a customer,
+// PURCHASE = paid to a supplier (same vocabulary as Transaction.type).
+model Payment {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String // PURCHASE | SALE
+  partyId   String   @map("party_id")
+  date      DateTime @db.Date
+  amount    Float // = sum of allocations
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  party       Party               @relation(fields: [partyId], references: [id], onDelete: NoAction)
+  allocations PaymentAllocation[]
+
+  @@index([userId, type, date])
+  @@index([partyId])
+  @@map("payments")
+}
+
+// How much of one payment went to one bill.
+model PaymentAllocation {
+  id            String @id @default(cuid())
+  paymentId     String @map("payment_id")
+  transactionId String @map("transaction_id")
+  amount        Float
+
+  payment     Payment     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  // NoAction: a bill with payments can't be deleted (money would vanish).
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: NoAction)
+
+  @@unique([paymentId, transactionId])
+  @@index([transactionId])
+  @@map("payment_allocations")
 }

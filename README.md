@@ -104,8 +104,7 @@ All colours live in **`src/app/globals.css`** as Tailwind v4 `@theme` tokens
 (calm "petrol + butter" look): `brand-*` (petrol teal, anchored on `#1B455E`),
 `accent-*` (butter yellow, `#F9D66B`), pastel `mint` / `lilac` / `aqua` badges,
 warm neutrals `canvas` / `line`, and semantic `nav` / `nav-hover` / `nav-active` /
-`on-nav*` for the dark surfaces. The font is Lexend, self-hosted via
-`@fontsource-variable/lexend` (no Google request). Shapes (pill buttons, rounded
+`on-nav*` for the dark surfaces. The font is the device's system font. Shapes (pill buttons, rounded
 cards) live in `src/components/ui/styles.ts`. A full repaint means editing
 those files (plus the two RGB constants at the top of `src/lib/pdf.ts`, since
 jsPDF can't read CSS). Every text/background pair is measured AA (>= 6.8:1).
