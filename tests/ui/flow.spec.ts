@@ -76,10 +76,11 @@ test("full buy & sell flow", async ({ page }) => {
   await expect(tile(page, "Due")).toHaveText("₹64,300.00"); // nothing paid yet
   await shot(page, "04-purchases-today");
 
-  // PDF download uses the same filters
+  // Each bill has its own invoice PDF (no period PDF button any more)
+  await expect(page.getByRole("link", { name: "PDF", exact: true })).toHaveCount(0);
   const download = page.waitForEvent("download");
-  await page.getByRole("link", { name: "PDF" }).click();
-  expect((await download).suggestedFilename()).toMatch(/^purchases-.*\.pdf$/);
+  await page.getByRole("link", { name: /Download invoice PDF for Ramesh Traders/ }).click();
+  expect((await download).suggestedFilename()).toMatch(/^purchase-invoice-Ramesh-Traders-\d{4}-\d{2}-\d{2}\.pdf$/);
 
   // Same rice from a second supplier, cheaper: 10 packets x 26 kg @ 44/kg
   await page.getByRole("button", { name: "New purchase" }).click();
@@ -140,6 +141,16 @@ test("full buy & sell flow", async ({ page }) => {
   await page.getByRole("button", { name: "New item" }).click();
   await expect(page.getByLabel("Counted in")).toHaveValue("packet");
   await page.getByRole("button", { name: "Cancel" }).click();
+
+  // Shop details for the invoice letterhead
+  await page.goto("/shop");
+  await page.getByLabel("Shop / company name").fill("Rohit Kirana Store");
+  await page.getByLabel("Address").fill("Shop 12, Main Bazaar, Patna");
+  await page.getByLabel("Phone").fill("98765 43210");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved. New invoices will show these details.")).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Shop / company name")).toHaveValue("Rohit Kirana Store");
 
   await page.goto("/dashboard");
   await expect(page.getByText("₹15,000.00").first()).toBeVisible();

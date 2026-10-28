@@ -13,11 +13,16 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(cuid())
+  name        String?
+  email       String   @unique
+  password    String
+  // Shop details printed at the top of invoices. Optional: invoices fall
+  // back to the user's name until these are filled in.
+  shopName    String?  @map("shop_name")
+  shopAddress String?  @map("shop_address")
+  shopPhone   String?  @map("shop_phone")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   items        Item[]
   itemTypes    ItemType[]

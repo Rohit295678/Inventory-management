@@ -6,7 +6,7 @@ import { formatDateRange } from "@/lib/format";
 import { buildTransactionsPdf } from "@/lib/pdf";
 import { summarize } from "@/lib/summary";
 import { listTransactions, parseFilter } from "@/lib/transactions";
-import { findPublicUser } from "@/lib/users";
+import { getLetterhead } from "@/lib/users";
 
 export const runtime = "nodejs";
 
@@ -23,9 +23,9 @@ export async function GET(req: Request) {
   const filter = parseFilter(new URL(req.url).searchParams);
   if (!filter.type) return errorResponse("type must be PURCHASE or SALE", 400);
 
-  const [transactions, user, party] = await Promise.all([
+  const [transactions, shop, party] = await Promise.all([
     listTransactions(userId, filter),
-    findPublicUser(userId),
+    getLetterhead(userId),
     filter.partyId
       ? prisma.party.findFirst({ where: { id: filter.partyId, userId }, select: { name: true } })
       : null,
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     type: filter.type,
     periodLabel: formatDateRange(filter.from, filter.to),
     partyName: party?.name,
-    ownerName: user?.name || user?.email || "",
+    shop,
     transactions,
     summary: summarize(transactions),
   });

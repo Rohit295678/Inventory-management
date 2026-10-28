@@ -58,7 +58,7 @@ export async function assertPartyFits(userId: string, partyId: string, type: TxT
 
 const TX_INCLUDE = {
   party: { select: { id: true, name: true } },
-  lines: { include: { item: { select: { name: true } } }, orderBy: { id: "asc" } },
+  lines: { include: { item: { select: { name: true, type: { select: { name: true } } } } }, orderBy: { id: "asc" } },
   allocations: {
     select: { amount: true, payment: { select: { id: true, date: true } } },
     orderBy: [{ payment: { date: "asc" } }, { payment: { createdAt: "asc" } }],
@@ -88,6 +88,7 @@ function toDTO(tx: TxRow): TransactionDTO {
       id: l.id,
       itemId: l.itemId,
       itemName: l.item.name,
+      itemType: l.item.type.name,
       quantity: l.quantity,
       unit: l.unit,
       weightPerUnitKg: l.weightPerUnitKg,
@@ -106,6 +107,11 @@ export async function listTransactions(userId: string, f: TxFilter): Promise<Tra
     orderBy: [...OLDEST_FIRST],
   });
   return rows.map(toDTO);
+}
+
+export async function getTransaction(userId: string, id: string): Promise<TransactionDTO | null> {
+  const tx = await prisma.transaction.findFirst({ where: { id, userId }, include: TX_INCLUDE });
+  return tx && toDTO(tx);
 }
 
 export async function createTransaction(userId: string, input: TransactionInput): Promise<TransactionDTO> {

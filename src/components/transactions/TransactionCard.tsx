@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
 import { formatDate, formatKg, formatLineQty, formatMoney } from "@/lib/format";
 import type { TransactionDTO } from "@/lib/types";
 import { BillPaymentStatus } from "@/components/payments/BillPaymentStatus";
@@ -18,6 +18,14 @@ export function TransactionCard({ tx, onDelete, onSettled }: Props) {
           </p>
         </div>
         <p className="font-bold text-slate-900 whitespace-nowrap">{formatMoney(tx.totalAmount)}</p>
+        <a
+          href={`/api/reports/bill?id=${tx.id}`}
+          download
+          className="-mt-1 inline-flex items-center gap-1 min-h-9 px-3 rounded-full border border-line text-xs font-semibold text-brand-800 hover:bg-brand-50 transition motion-reduce:transition-none"
+          aria-label={`Download invoice PDF for ${tx.party.name} on ${formatDate(tx.date)}`}
+        >
+          <FileDown className="w-4 h-4" aria-hidden="true" /> PDF
+        </a>
         <button
           onClick={() => onDelete(tx)}
           className={`${iconButtonClass.danger} -mt-1.5`}

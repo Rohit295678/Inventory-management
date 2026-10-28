@@ -80,3 +80,10 @@ export const paymentSchema = z.object({
 export type PaymentInput = z.infer<typeof paymentSchema>;
 
 export const settleSchema = z.object({ settled: z.boolean() });
+
+// Shop details for invoices; all optional.
+export const shopSchema = z.object({
+  name: optionalText(100),
+  address: optionalText(300),
+  phone: optionalText(30),
+});

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Banknote, HandCoins, LayoutGrid, LogOut, Package, ShoppingCart, Truck, Users, X } from "lucide-react";
+import { Banknote, HandCoins, LayoutGrid, LogOut, Package, ShoppingCart, Store, Truck, Users, X } from "lucide-react";
 import { PAYMENT_COPY } from "@/lib/domain";
 import { Logo } from "@/components/ui/Logo";
 
@@ -14,6 +14,7 @@ const NAV = [
   { href: PAYMENT_COPY.PURCHASE.href, label: PAYMENT_COPY.PURCHASE.nav, icon: Banknote },
   { href: "/items", label: "Items & Stock", icon: Package },
   { href: "/parties", label: "People", icon: Users },
+  { href: "/shop", label: "Shop details", icon: Store },
 ] as const;
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {

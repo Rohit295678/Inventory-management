@@ -56,6 +56,7 @@ export type TxLineDTO = {
   id: string;
   itemId: string;
   itemName: string;
+  itemType: string; // "Rice": printed as "miniket (Rice)"
   quantity: number;
   unit: string;
   weightPerUnitKg: number | null; // null for kg items and older bills
@@ -85,6 +86,7 @@ export type BillPaymentDTO = { paymentId: string; date: string; amount: number }
 export type ItemSummary = {
   itemId: string;
   itemName: string;
+  itemType: string;
   unit: string;
   quantity: number;
   weightKg: number;
@@ -126,3 +128,9 @@ export type PaymentDTO = {
 };
 
 export type PaymentsResponse = { payments: PaymentDTO[]; summary: { count: number; totalAmount: number } };
+
+// The user's shop, printed at the top of invoices.
+export type ShopDTO = { name: string | null; address: string | null; phone: string | null };
+
+// What a PDF prints at the top: the shop, or the user's name until it's set.
+export type Letterhead = { name: string; address: string | null; phone: string | null };

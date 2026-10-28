@@ -82,7 +82,9 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | GET | `/api/payments?type=SALE\|PURCHASE&from=&to=&partyId=` | → `{ payments, summary: { count, totalAmount } }`. SALE = received from customers, PURCHASE = paid to suppliers |
 | POST | `/api/payments` | `{ type, partyId, date, amount, note?, allocations: [{ transactionId, amount }] }`; allocations must add up to `amount`, each ≤ what is due |
 | DELETE | `/api/payments?id=` | The bills it paid become due (and unsettled) again |
-| GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf` |
+| GET | `/api/reports/bill?id=` | `application/pdf`: one bill as a Sales/Purchase Invoice (shop letterhead, customer/supplier, items as "name (type)", payments by date, balance due) |
+| GET | `/api/reports/pdf?type=&from=&to=&partyId=` | `application/pdf`: period report (API only; the web app uses per-bill invoices) |
+| GET/PUT | `/api/shop` | `{ name, address, phone }` printed at the top of invoices; all optional (falls back to the user's name) |
 
 **Pricing rule** (`src/lib/pricing.ts`, shared by server and form): items counted
 in `kg` weigh their quantity; other units (packet, bag, ...) need `weightPerUnitKg`,

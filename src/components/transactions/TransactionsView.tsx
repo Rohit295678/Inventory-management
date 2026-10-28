@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { api, errorMessage, useApi } from "@/lib/api-client";
 import { ALL_TIME, filterQuery, groupByDate, todayRange } from "@/lib/date-filters";
 import { TX_COPY, partyKindsFor, type TxType } from "@/lib/domain";
@@ -26,8 +26,7 @@ export function TransactionsView({ type }: { type: TxType }) {
   const [showForm, setShowForm] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const query = filterQuery(type, range, partyId);
-  const txs = useApi<TransactionsResponse>(`/api/transactions?${query}`);
+  const txs = useApi<TransactionsResponse>(`/api/transactions?${filterQuery(type, range, partyId)}`);
   const items = useApi<ItemDTO[]>("/api/items");
   const parties = useApi<PartyDTO[]>(`/api/parties?kind=${partyKindsFor(type)[0]}`);
   const groups = useMemo(() => groupByDate(txs.data?.transactions ?? []), [txs.data]);
@@ -51,16 +50,11 @@ export function TransactionsView({ type }: { type: TxType }) {
         title={copy.title}
         subtitle={`${formatDateRange(range.from || undefined, range.to || undefined)}${partyName ? ` · ${partyName}` : ""}`}
         actions={
-          <>
-            <a href={`/api/reports/pdf?${query}`} className={buttonClass.secondary} download>
-              <Download className="w-4 h-4" aria-hidden="true" /> PDF
-            </a>
-            {!showForm && (
-              <button onClick={() => setShowForm(true)} className={buttonClass.primary}>
-                <Plus className="w-4 h-4" aria-hidden="true" /> New {copy.noun}
-              </button>
-            )}
-          </>
+          !showForm && (
+            <button onClick={() => setShowForm(true)} className={buttonClass.primary}>
+              <Plus className="w-4 h-4" aria-hidden="true" /> New {copy.noun}
+            </button>
+          )
         }
       />
       <Alert message={txs.error || items.error || parties.error || actionError} />

@@ -345,6 +345,27 @@ test("payments: each bill lists its payments (date + amount), and so does the PD
   assert.ok(text.includes("Nothing received yet"), "unpaid bill status missing");
 });
 
+test("shop details: saved for the invoice letterhead, all optional", async () => {
+  assert.deepEqual((await call("GET", "/api/shop")).data, { name: null, address: null, phone: null });
+  const saved = await call("PUT", "/api/shop", { name: "Rohit Kirana Store", address: "Shop 12, Main Bazaar, Patna", phone: "98765 43210" });
+  assert.equal(saved.status, 200);
+  assert.deepEqual((await call("GET", "/api/shop")).data, { name: "Rohit Kirana Store", address: "Shop 12, Main Bazaar, Patna", phone: "98765 43210" });
+  assert.equal((await call("PUT", "/api/shop", { name: "x".repeat(101) })).status, 400);
+});
+
+test("invoice PDF: one bill with letterhead, plain item names, payments and balance", async () => {
+  // PDF strings live inside ( ), so ( ) \ in the text itself are escaped.
+  const asPdfString = (s: string) => s.replace(/[()\\]/g, (c) => `\\${c}`);
+  const res = await call("GET", `/api/reports/bill?id=${ids.bigSale}`);
+  assert.equal(res.status, 200);
+  const text = new TextDecoder("latin1").decode(res.data as ArrayBuffer);
+  for (const expected of ["SALES INVOICE", "Rohit Kirana Store", "Shop 12, Main Bazaar, Patna", "BILL TO", "Sita Stores", "Basmati Rice (Rice)", "Balance due", "Rs. 12,000.00"]) {
+    assert.ok(text.includes(asPdfString(expected)), `missing: ${expected}`);
+  }
+  assert.ok(!text.includes("rs/kg"), "lot names must not appear on invoices");
+  assert.equal((await call("GET", "/api/reports/bill?id=nope")).status, 404);
+});
+
 test("pdf: downloads a real PDF", async () => {
   const res = await call("GET", `/api/reports/pdf?type=PURCHASE&from=${today}&to=${today}`);
   assert.equal(res.status, 200);

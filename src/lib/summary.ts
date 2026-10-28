@@ -33,6 +33,7 @@ export function summarize(transactions: ReadonlyArray<TransactionDTO>): Summary 
       const item = byItem.get(key) ?? {
         itemId: line.itemId,
         itemName: line.itemName,
+        itemType: line.itemType,
         unit: line.unit,
         quantity: 0,
         weightKg: 0,
