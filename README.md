@@ -71,12 +71,12 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | POST | `/api/mobile/login` | `{ email, password }` → `{ token, user }` |
 | GET | `/api/mobile/me` | Validate a stored token |
 | GET/POST | `/api/item-types` | The user's own types of goods (A-Z) / create `{ name }` (409 if it exists, any case) |
-| GET/POST | `/api/items` | List (with `stock`, `bought` totals and `suppliers`: per-supplier qty, kg, total, avg and min/max price/kg) / create `{ name, typeId, unit, details? }` |
+| GET/POST | `/api/items` | List (with `stock`, `bought` totals, `suppliers`: per-supplier qty, kg, total, avg and min/max price/kg, and `lots`: in-stock price lots oldest first, each `{ ratePerKg, label, firstBoughtOn, stock, bought, suppliers }`; `label` is "miniket-40rs/kg" when 2+ lots are in stock, else the plain name) / create `{ name, typeId, unit, details? }` |
 | PATCH/DELETE | `/api/items?id=` | Delete is refused while the item is on a bill |
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |
 | GET | `/api/transactions?type=&from=&to=&partyId=&status=open` | → `{ transactions, summary }`; each bill has `paid`, `due`, `settledAt`, `payments[]` (date + amount); `status=open` = not settled |
-| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg }] }` |
+| POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg, lotRatePerKg? }] }`. Sales: `lotRatePerKg` picks the price lot to sell from (needed when 2+ are in stock); can't sell more than the lot holds |
 | PATCH | `/api/transactions?id=` | `{ settled: true\|false }`; settling needs the bill fully paid |
 | DELETE | `/api/transactions?id=` | 409 while payments sit on the bill |
 | GET | `/api/payments?type=SALE\|PURCHASE&from=&to=&partyId=` | → `{ payments, summary: { count, totalAmount } }`. SALE = received from customers, PURCHASE = paid to suppliers |

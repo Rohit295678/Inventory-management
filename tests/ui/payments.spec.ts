@@ -20,6 +20,9 @@ async function seed(page: Page) {
   const type = await post("/api/item-types", { name: "Rice" });
   const rice = await post("/api/items", { name: "Sona Rice", typeId: type.id, unit: "kg" });
   const sita = await post("/api/parties", { name: "Sita Stores", kind: "CUSTOMER" });
+  const ramesh = await post("/api/parties", { name: "Ramesh Traders", kind: "SUPPLIER" });
+  // Stock first: you can only sell what you have (one price lot -> picked automatically)
+  await post("/api/transactions", { type: "PURCHASE", partyId: ramesh.id, date: iso(4), lines: [{ itemId: rice.id, quantity: 200, ratePerKg: 80 }] });
   const sale = (date: string, quantity: number) =>
     post("/api/transactions", { type: "SALE", partyId: sita.id, date, lines: [{ itemId: rice.id, quantity, ratePerKg: 100 }] });
   await sale(iso(3), 150); // Rs 15,000, three days ago

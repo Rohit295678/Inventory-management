@@ -7,6 +7,7 @@ import { round2, round3 } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { ItemForm } from "@/components/items/ItemForm";
 import { ItemRow } from "@/components/items/ItemRow";
+import { stockRows } from "@/lib/lots";
 import { Alert, EmptyState, PageHeader } from "@/components/ui/PageHeader";
 import { Loading } from "@/components/ui/Spinner";
 import { StatTiles, type Stat } from "@/components/ui/StatTiles";
@@ -101,14 +102,17 @@ export default function ItemsPage() {
             <section key={typeName} aria-label={typeName}>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-2">{typeName}</h2>
               <ul className={`${cardClass} divide-y divide-slate-100`}>
-                {list.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    onEdit={() => setEditing({ mode: "edit", item })}
-                    onDelete={() => remove(item)}
-                  />
-                ))}
+                {list.flatMap((item) =>
+                  stockRows(item).map((row) => (
+                    <ItemRow
+                      key={row.key}
+                      item={item}
+                      row={row}
+                      onEdit={() => setEditing({ mode: "edit", item })}
+                      onDelete={() => remove(item)}
+                    />
+                  ))
+                )}
               </ul>
             </section>
           ))}

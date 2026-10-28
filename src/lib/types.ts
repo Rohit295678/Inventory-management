@@ -20,6 +20,17 @@ export type ItemStats = {
   stock: Stock;
   bought: Bought; // = sum of `suppliers`
   suppliers: SupplierBought[]; // biggest spend first
+  lots: LotDTO[]; // in-stock price lots, oldest first
+};
+
+// The item bought at one price per kg, and how much of that is still in stock.
+export type LotDTO = {
+  ratePerKg: number; // purchase price per kg: identifies the lot
+  label: string; // "miniket-40rs/kg" when several lots are in stock, else "miniket"
+  firstBoughtOn: string; // YYYY-MM-DD
+  stock: Stock;
+  bought: Bought;
+  suppliers: SupplierBought[];
 };
 
 // The user's own "type of goods" (Rice, Pulse, ...). Per user, not global.
@@ -51,6 +62,7 @@ export type TxLineDTO = {
   weightKg: number;
   ratePerKg: number;
   totalCost: number;
+  lotRatePerKg: number | null; // sale lines: the purchase-price lot it came from
 };
 
 export type TransactionDTO = {

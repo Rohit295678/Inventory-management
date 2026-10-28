@@ -13,6 +13,7 @@ const line = (itemId: string, itemName: string, unit: string, quantity: number, 
   weightKg,
   totalCost,
   ratePerKg: totalCost / weightKg,
+  lotRatePerKg: null,
 });
 
 const tx = (id: string, partyId: string, lines: TransactionDTO["lines"], paid = 0): TransactionDTO => {

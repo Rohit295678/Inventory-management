@@ -92,15 +92,18 @@ test("full buy & sell flow", async ({ page }) => {
   await form.getByRole("button", { name: "Save purchase" }).click();
   await expect(page.getByRole("article", { name: /Shyam & Co/ })).toBeVisible();
 
-  // Sale: 10 packets rice
+  // Sale: 10 packets rice. Rice is in stock at two prices, so the dropdown
+  // lists both lots and I pick one; its kg per packet fills itself in.
   await page.goto("/sales");
   await page.getByRole("button", { name: "New sale" }).click();
   const sale = page.getByRole("form", { name: "New sale" });
   await sale.getByLabel("Customer").selectOption({ label: "Sita Stores" });
   const sl = sale.getByRole("group", { name: "Item 1" });
-  await sl.getByLabel("Item", { exact: true }).selectOption({ label: "Basmati Rice (Rice)" });
+  const itemPicker = sl.getByLabel("Item", { exact: true });
+  await expect(itemPicker.getByRole("option", { name: "Basmati Rice-44rs/kg (Rice) · 10 packets left" })).toBeAttached();
+  await itemPicker.selectOption({ label: "Basmati Rice-50rs/kg (Rice) · 50 packets left" });
+  await expect(sl.getByLabel("Weight per packet (kg)")).toHaveValue("25"); // from that lot
   await sl.getByLabel("Quantity (packet)").fill("10");
-  await sl.getByLabel("Weight per packet (kg)").fill("25");
   await sl.getByLabel("Price per kg (₹)").fill("60");
   // price per kg x weight per packet x packets = 60 x 25 x 10
   await expect(sl.getByText("10 packets × 25 kg × ₹60.00/kg = ₹15,000.00")).toBeVisible();
@@ -108,26 +111,29 @@ test("full buy & sell flow", async ({ page }) => {
   await expect(page.getByRole("article", { name: /Sita Stores/ })).toBeVisible();
   await expect(page.getByText("10 packets × 25 kg (250 kg)")).toBeVisible();
 
-  // Items & stock. Rice: bought 50 + 10 = 60 packets, sold 10 -> 50 in stock.
+  // Items & stock. Rice is in stock at two prices -> one row per price lot,
+  // each with its own stock. The 10 sold came off the 50 rs/kg lot only.
   await page.goto("/items");
-  await expect(page.getByText("50 packets", { exact: true })).toBeVisible(); // stock, count first
-  await expect(page.getByText("1,260 kg", { exact: true })).toBeVisible(); //   ...kg second
-  // Tiles: 73,940 + 1,800 spent; packets before weight
+  const rice50 = page.getByRole("listitem", { name: "Basmati Rice-50rs/kg" });
+  const rice44 = page.getByRole("listitem", { name: "Basmati Rice-44rs/kg" });
+  await expect(rice50.getByText("40 packets", { exact: true })).toBeVisible(); // count first
+  await expect(rice50.getByText("1,000 kg", { exact: true })).toBeVisible(); //   ...kg second
+  await expect(rice50.getByText("Bought 50 packets (1,250 kg) · avg ₹50.00/kg · total ₹62,500.00")).toBeVisible();
+  await expect(rice50.getByText("From Ramesh Traders")).toBeVisible();
+  await expect(rice44.getByText("10 packets", { exact: true })).toBeVisible();
+  await expect(rice44.getByText("260 kg", { exact: true })).toBeVisible();
+  await expect(rice44.getByText("Bought 10 packets (260 kg) · avg ₹44.00/kg · total ₹11,440.00")).toBeVisible();
+  await expect(rice44.getByText("From Shyam & Co")).toBeVisible();
+  // Tiles still count everything: 73,940 + 1,800 spent; packets before weight
   const tiles = page.getByRole("definition");
   await expect(tiles.filter({ hasText: "₹75,740.00" })).toBeVisible();
   await expect(page.getByText("Packets bought")).toBeVisible();
   await expect(tiles.filter({ hasText: "60 packets" })).toBeVisible();
   await expect(tiles.filter({ hasText: "1,530 kg" })).toBeVisible();
-  // Highlighted total, weighted avg: 73,940 / 1,510 kg = 48.97
-  await expect(page.getByText("Bought 60 packets (1,510 kg) · avg ₹48.97/kg · total ₹73,940.00")).toBeVisible();
-  // ...and per supplier, at their own prices
-  await expect(page.getByText("Ramesh Traders · 50 packets (1,250 kg)")).toBeVisible();
-  await expect(page.getByText("₹50.00/kg · ₹62,500.00")).toBeVisible();
-  await expect(page.getByText("Shyam & Co · 10 packets (260 kg)")).toBeVisible();
-  await expect(page.getByText("₹44.00/kg · ₹11,440.00")).toBeVisible();
-  // Dal had one supplier: just a "From ..." line
-  await expect(page.getByText("Bought 20 kg · avg ₹90.00/kg · total ₹1,800.00")).toBeVisible();
-  await expect(page.getByText("From Ramesh Traders")).toBeVisible();
+  // Dal: one price -> plain name, one row
+  const dal = page.getByRole("listitem", { name: "Toor Dal" });
+  await expect(dal.getByText("Bought 20 kg · avg ₹90.00/kg · total ₹1,800.00")).toBeVisible();
+  await expect(dal.getByText("From Ramesh Traders")).toBeVisible();
   await shot(page, "05-stock");
 
   // New items default to "packet"

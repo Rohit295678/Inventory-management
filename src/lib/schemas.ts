@@ -47,6 +47,9 @@ export const lineSchema = z.object({
   quantity: z.number().positive("Quantity must be greater than 0"),
   weightPerUnitKg: optionalNumber,
   ratePerKg: z.number().positive("Price per kg must be greater than 0"),
+  // Sales only: which price lot ("miniket-40rs/kg") to sell from. Optional
+  // when the item has just one lot in stock. Ignored on purchases.
+  lotRatePerKg: z.number().positive().optional().nullable(),
 });
 
 export const transactionSchema = z.object({

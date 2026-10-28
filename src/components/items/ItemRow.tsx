@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { formatKg, formatMoney, formatQty, formatQtyAndKg } from "@/lib/format";
+import type { StockRow } from "@/lib/lots";
 import type { ItemDTO, SupplierBought } from "@/lib/types";
 import { iconButtonClass } from "@/components/ui/styles";
 
@@ -10,8 +11,7 @@ function supplierRate(s: SupplierBought): string {
     : `${formatMoney(s.minRatePerKg)}\u2013${formatMoney(s.maxRatePerKg)}/kg, avg ${formatMoney(s.avgRatePerKg)}`;
 }
 
-function SupplierList({ item }: { item: ItemDTO }) {
-  const { suppliers } = item;
+function SupplierList({ suppliers, unit }: { suppliers: SupplierBought[]; unit: string }) {
   if (suppliers.length === 1) {
     const [only] = suppliers;
     return (
@@ -28,7 +28,7 @@ function SupplierList({ item }: { item: ItemDTO }) {
         {suppliers.map((s) => (
           <li key={s.partyId} className="flex flex-wrap justify-between gap-x-3">
             <span>
-              <span className="font-medium text-slate-900">{s.partyName}</span> · {formatQtyAndKg(s, item.unit)}
+              <span className="font-medium text-slate-900">{s.partyName}</span> · {formatQtyAndKg(s, unit)}
             </span>
             <span className="whitespace-nowrap">
               {supplierRate(s)} · <span className="font-semibold text-slate-900">{formatMoney(s.totalCost)}</span>
@@ -40,25 +40,29 @@ function SupplierList({ item }: { item: ItemDTO }) {
   );
 }
 
-// One item: stock on the right (count first, kg second), and a highlighted
-// box with what was paid to suppliers, broken down per supplier.
-export function ItemRow({ item, onEdit, onDelete }: { item: ItemDTO; onEdit: () => void; onDelete: () => void }) {
-  const out = item.stock.weightKg <= 0;
+// One row of stock: the whole item, or one price lot of it ("miniket-40rs/kg")
+// when several are in stock. Stock on the right (count first, kg second),
+// and a highlighted box with what was paid, broken down per supplier.
+// Edit/delete always act on the item.
+type Props = { item: ItemDTO; row: StockRow; onEdit: () => void; onDelete: () => void };
+
+export function ItemRow({ item, row, onEdit, onDelete }: Props) {
+  const out = row.stock.weightKg <= 0;
   const byKg = item.unit === "kg";
-  const { bought } = item;
+  const { bought } = row;
 
   return (
-    <li className="p-3 sm:p-4">
+    <li className="p-3 sm:p-4" aria-label={row.label}>
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-slate-900">{item.name}</p>
+          <p className="font-medium text-slate-900">{row.label}</p>
           {item.details && <p className="text-xs text-slate-600 truncate">{item.details}</p>}
         </div>
         <div className="text-right">
           <p className={`font-semibold ${out ? "text-red-700" : "text-brand-800"}`}>
-            {formatQty(byKg ? item.stock.weightKg : item.stock.quantity, item.unit)}
+            {formatQty(byKg ? row.stock.weightKg : row.stock.quantity, item.unit)}
           </p>
-          {!byKg && <p className="text-xs text-slate-600">{formatKg(item.stock.weightKg)}</p>}
+          {!byKg && <p className="text-xs text-slate-600">{formatKg(row.stock.weightKg)}</p>}
           <span className="sr-only">in stock{out ? " (out of stock)" : ""}</span>
         </div>
         <button onClick={onEdit} className={iconButtonClass.edit} aria-label={`Edit ${item.name}`}>
@@ -85,7 +89,7 @@ export function ItemRow({ item, onEdit, onDelete }: { item: ItemDTO; onEdit: () 
               total <span className="font-bold text-brand-800">{formatMoney(bought.totalCost)}</span>
             </span>
           </p>
-          <SupplierList item={item} />
+          <SupplierList suppliers={row.suppliers} unit={item.unit} />
         </div>
       ) : (
         <p className="mt-1.5 text-xs text-slate-600">Not bought yet</p>

@@ -1,8 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ISO_DATE_RE, TX_TYPES, partyKindsFor, toISODate, type TxType } from "@/lib/domain";
-import { formatMoney } from "@/lib/format";
-import { priceLine, round2, sumTotals, toPaise, PricingError } from "@/lib/pricing";
+import { formatMoney, formatQty } from "@/lib/format";
+import { getItemStats } from "@/lib/item-stats";
+import { LotError, pickLot } from "@/lib/lots";
+import { priceLine, round2, round3, sumTotals, toPaise, PricingError } from "@/lib/pricing";
 import type { TransactionInput } from "@/lib/schemas";
 import type { TransactionDTO } from "@/lib/types";
 
@@ -92,6 +94,7 @@ function toDTO(tx: TxRow): TransactionDTO {
       weightKg: l.weightKg,
       ratePerKg: l.ratePerKg,
       totalCost: l.totalCost,
+      lotRatePerKg: l.lotRatePerKg,
     })),
   };
 }
@@ -111,19 +114,21 @@ export async function createTransaction(userId: string, input: TransactionInput)
   const itemIds = [...new Set(input.lines.map((l) => l.itemId))];
   const items = await prisma.item.findMany({
     where: { id: { in: itemIds }, userId },
-    select: { id: true, unit: true },
+    select: { id: true, unit: true, name: true },
   });
-  const unitById = new Map(items.map((i) => [i.id, i.unit]));
-  if (unitById.size !== itemIds.length) throw new DomainError("One or more items were not found", 404);
+  const itemById = new Map(items.map((i) => [i.id, i]));
+  if (itemById.size !== itemIds.length) throw new DomainError("One or more items were not found", 404);
 
-  const lines = input.lines.map((line, index) => {
+  const priced = input.lines.map((line, index) => {
     try {
-      return { itemId: line.itemId, ...priceLine({ ...line, unit: unitById.get(line.itemId)! }) };
+      return { itemId: line.itemId, ...priceLine({ ...line, unit: itemById.get(line.itemId)!.unit }) };
     } catch (err) {
       if (err instanceof PricingError) throw new DomainError(`Line ${index + 1}: ${err.message}`);
       throw err;
     }
   });
+  const lotRates = input.type === "SALE" ? await saleLots(userId, input.lines, itemById) : null;
+  const lines = priced.map((line, index) => ({ ...line, lotRatePerKg: lotRates?.[index] ?? null }));
 
   const created = await prisma.transaction.create({
     data: {
@@ -138,6 +143,34 @@ export async function createTransaction(userId: string, input: TransactionInput)
     include: TX_INCLUDE,
   });
   return toDTO(created);
+}
+
+// Which price lot each sale line comes from (picked by the seller, or the
+// only one in stock), refusing to sell more than a lot holds. Quantities of
+// the same lot on several lines of one bill add up.
+async function saleLots(
+  userId: string,
+  lines: TransactionInput["lines"],
+  itemById: Map<string, { name: string; unit: string }>
+): Promise<number[]> {
+  const stats = await getItemStats(userId);
+  const wanted = new Map<string, number>(); // "itemId@rate" -> quantity on this bill
+  return lines.map((line, index) => {
+    const item = itemById.get(line.itemId)!;
+    try {
+      const lot = pickLot(item.name, stats.get(line.itemId)?.lots ?? [], line.lotRatePerKg);
+      const key = `${line.itemId}@${lot.ratePerKg}`;
+      const total = (wanted.get(key) ?? 0) + line.quantity;
+      wanted.set(key, total);
+      if (round3(total) > round3(lot.stock.quantity)) {
+        throw new LotError(`Only ${formatQty(lot.stock.quantity, item.unit)} of ${lot.label} in stock`);
+      }
+      return lot.ratePerKg;
+    } catch (err) {
+      if (err instanceof LotError) throw new DomainError(`Line ${index + 1}: ${err.message}`);
+      throw err;
+    }
+  });
 }
 
 // Refused while payments sit on the bill: deleting it would make that money vanish.

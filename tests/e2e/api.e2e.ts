@@ -182,6 +182,53 @@ test("items: same item from two suppliers at different prices", async () => {
   assert.deepEqual(rice.stock, { quantity: 55, weightKg: 1385 }); // 65 bought - 10 sold
 });
 
+// ---- Price lots: rice is now in stock at 44, 50 and 52 rs/kg.
+type Lot = { label: string; ratePerKg: number; stock: { quantity: number; weightKg: number } };
+const riceLots = async (): Promise<[string, number, number][]> =>
+  (await call("GET", "/api/items")).data
+    .find((i: { id: string }) => i.id === ids.rice)
+    .lots.map((l: Lot) => [l.label, l.stock.quantity, l.stock.weightKg]);
+
+test("lots: one row per purchase price, each with its own stock", async () => {
+  // Oldest first (all today, so in the order they were entered). The first
+  // sale (10) came off the 50 lot, the only one then.
+  assert.deepEqual(await riceLots(), [
+    ["Basmati Rice-50rs/kg", 40, 1000],
+    ["Basmati Rice-44rs/kg", 10, 260],
+    ["Basmati Rice-52rs/kg", 5, 125],
+  ]);
+});
+
+test("lots: a sale comes off the lot I pick, never more than it holds", async () => {
+  ids.lotCustomer = (await call("POST", "/api/parties", { name: "Lot Buyer", kind: "CUSTOMER" })).data.id;
+  const sell = (...lines: { quantity: number; lotRatePerKg?: number; weightPerUnitKg?: number }[]) =>
+    call("POST", "/api/transactions", {
+      type: "SALE",
+      partyId: ids.lotCustomer,
+      date: today,
+      lines: lines.map((l) => ({ itemId: ids.rice, weightPerUnitKg: 25, ratePerKg: 60, ...l })),
+    });
+
+  const noLot = await sell({ quantity: 1 });
+  assert.equal(noLot.status, 400);
+  assert.match(noLot.data.error, /Pick which Basmati Rice: Basmati Rice-50rs\/kg or Basmati Rice-44rs\/kg or Basmati Rice-52rs\/kg/);
+
+  const tooMany = await sell({ quantity: 6, lotRatePerKg: 52 });
+  assert.equal(tooMany.status, 400);
+  assert.match(tooMany.data.error, /Only 5 packets of Basmati Rice-52rs\/kg in stock/);
+  assert.equal((await sell({ quantity: 3, lotRatePerKg: 52 }, { quantity: 3, lotRatePerKg: 52 })).status, 400); // 6 over two lines
+  assert.equal((await sell({ quantity: 1, lotRatePerKg: 99 })).status, 400); // no such lot
+
+  const ok = await sell({ quantity: 3, lotRatePerKg: 44, weightPerUnitKg: 26 }); // that lot's packets are 26 kg
+  assert.equal(ok.status, 201, JSON.stringify(ok.data));
+  assert.equal(ok.data.lines[0].lotRatePerKg, 44);
+  assert.deepEqual(await riceLots(), [
+    ["Basmati Rice-50rs/kg", 40, 1000],
+    ["Basmati Rice-44rs/kg", 7, 182], // only this one went down
+    ["Basmati Rice-52rs/kg", 5, 125],
+  ]);
+});
+
 // ---- Payments: Sita Stores owes 15,000 for the rice sale and pays in parts.
 type Bill = { id: string; totalAmount: number; paid: number; due: number; settledAt: string | null };
 const openSaleBills = async (): Promise<Bill[]> =>
@@ -194,7 +241,7 @@ test("payments: open bills come oldest first with paid/due", async () => {
     type: "SALE",
     partyId: ids.customer,
     date: today,
-    lines: [{ itemId: ids.rice, quantity: 2, weightPerUnitKg: 25, ratePerKg: 10 }], // 500
+    lines: [{ itemId: ids.rice, quantity: 2, weightPerUnitKg: 25, ratePerKg: 10, lotRatePerKg: 52 }], // 500
   });
   ids.smallSale = small.data.id;
 

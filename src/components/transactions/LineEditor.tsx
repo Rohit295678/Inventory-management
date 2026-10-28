@@ -1,7 +1,7 @@
 "use client";
 import { Trash2 } from "lucide-react";
-import { formatKg, formatLineQty, formatMoney } from "@/lib/format";
-import { priceLine, PricingError, type PricedLine } from "@/lib/pricing";
+import { formatKg, formatLineQty, formatMoney, formatQty } from "@/lib/format";
+import { priceLine, PricingError, round3, type PricedLine } from "@/lib/pricing";
 import type { ItemDTO } from "@/lib/types";
 import { Field } from "@/components/ui/Field";
 import { iconButtonClass, inputClass } from "@/components/ui/styles";
@@ -9,6 +9,7 @@ import { iconButtonClass, inputClass } from "@/components/ui/styles";
 export type LineDraft = {
   key: number;
   itemId: string;
+  lotRatePerKg: string; // sales: purchase price of the lot sold from
   quantity: string;
   weightPerUnitKg: string;
   ratePerKg: string;
@@ -20,6 +21,7 @@ const num = (s: string) => (s.trim() === "" ? null : Number(s));
 export function toPayload(line: LineDraft) {
   return {
     itemId: line.itemId,
+    lotRatePerKg: num(line.lotRatePerKg),
     quantity: num(line.quantity) ?? 0,
     weightPerUnitKg: num(line.weightPerUnitKg),
     ratePerKg: num(line.ratePerKg),
@@ -37,16 +39,47 @@ export function previewLine(line: LineDraft, item: ItemDTO | undefined): PricedL
   }
 }
 
+// Sale dropdown values are "itemId@lotRate".
+const lotValue = (line: LineDraft) => (line.itemId ? `${line.itemId}@${line.lotRatePerKg}` : "");
+
+// Picking a lot also fills in its kg per packet (still editable).
+function pickSaleLot(items: ItemDTO[], value: string): Partial<LineDraft> {
+  const [itemId = "", rate = ""] = value.split("@");
+  const item = items.find((i) => i.id === itemId);
+  const lot = item?.lots.find((l) => String(l.ratePerKg) === rate);
+  const perUnit = lot && item!.unit !== "kg" && lot.bought.quantity > 0 ? round3(lot.bought.weightKg / lot.bought.quantity) : null;
+  return { itemId, lotRatePerKg: rate, ...(perUnit && { weightPerUnitKg: String(perUnit) }) };
+}
+
+// Sales choose a price lot ("miniket-40rs/kg · 20 packets left"); items with
+// nothing in stock are listed but can't be picked.
+function SaleOptions({ items }: { items: ItemDTO[] }) {
+  return items.map((item) =>
+    item.lots.length ? (
+      item.lots.map((lot) => (
+        <option key={`${item.id}@${lot.ratePerKg}`} value={`${item.id}@${lot.ratePerKg}`}>
+          {lot.label} ({item.type.name}) · {formatQty(lot.stock.quantity, item.unit)} left
+        </option>
+      ))
+    ) : (
+      <option key={item.id} value={`${item.id}@`} disabled>
+        {item.name} ({item.type.name}) · out of stock
+      </option>
+    )
+  );
+}
+
 type Props = {
   index: number;
   line: LineDraft;
   items: ItemDTO[];
+  sale: boolean;
   canRemove: boolean;
   onChange: (patch: Partial<LineDraft>) => void;
   onRemove: () => void;
 };
 
-export function LineEditor({ index, line, items, canRemove, onChange, onRemove }: Props) {
+export function LineEditor({ index, line, items, sale, canRemove, onChange, onRemove }: Props) {
   const item = items.find((i) => i.id === line.itemId);
   const priced = previewLine(line, item);
   const byWeight = !item || item.unit === "kg";
@@ -70,17 +103,21 @@ export function LineEditor({ index, line, items, canRemove, onChange, onRemove }
           {(id) => (
             <select
               id={id}
-              value={line.itemId}
-              onChange={(e) => onChange({ itemId: e.target.value })}
+              value={sale ? lotValue(line) : line.itemId}
+              onChange={(e) => onChange(sale ? pickSaleLot(items, e.target.value) : { itemId: e.target.value })}
               className={inputClass}
               required
             >
               <option value="">Choose…</option>
-              {items.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name} ({i.type.name})
-                </option>
-              ))}
+              {sale ? (
+                <SaleOptions items={items} />
+              ) : (
+                items.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name} ({i.type.name})
+                  </option>
+                ))
+              )}
             </select>
           )}
         </Field>

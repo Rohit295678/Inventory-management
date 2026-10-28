@@ -27,6 +27,7 @@ let lineKeySeq = 0;
 const blankLine = (): LineDraft => ({
   key: ++lineKeySeq,
   itemId: "",
+  lotRatePerKg: "",
   quantity: "",
   weightPerUnitKg: "",
   ratePerKg: "",
@@ -130,6 +131,7 @@ function LoadedForm({
             index={index}
             line={line}
             items={items}
+            sale={type === "SALE"}
             canRemove={lines.length > 1}
             onChange={(patch) => patchLine(line.key, patch)}
             onRemove={() => setLines((ls) => ls.filter((l) => l.key !== line.key))}
