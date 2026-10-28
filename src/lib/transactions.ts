@@ -30,6 +30,10 @@ export function parseFilter(params: URLSearchParams): TxFilter {
   };
 }
 
+// Bills and payments are listed oldest first everywhere (screens, PDF, API):
+// a running account reads top to bottom.
+export const OLDEST_FIRST = [{ date: "asc" }, { createdAt: "asc" }] as const;
+
 // Shared by bills and payments: date-range + person filter as a Prisma where.
 export function dateAndPartyWhere(userId: string, f: TxFilter) {
   return {
@@ -96,7 +100,7 @@ export async function listTransactions(userId: string, f: TxFilter): Promise<Tra
   const rows = await prisma.transaction.findMany({
     where: { ...dateAndPartyWhere(userId, f), settledAt: f.open ? null : undefined },
     include: TX_INCLUDE,
-    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    orderBy: [...OLDEST_FIRST],
   });
   return rows.map(toDTO);
 }

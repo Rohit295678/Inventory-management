@@ -189,7 +189,7 @@ const openSaleBills = async (): Promise<Bill[]> =>
 const pay = (amount: number, allocations: { transactionId: string; amount: number }[], extra: object = {}) =>
   call("POST", "/api/payments", { type: "SALE", partyId: ids.customer, date: today, amount, allocations, ...extra });
 
-test("payments: open bills come newest first with paid/due", async () => {
+test("payments: open bills come oldest first with paid/due", async () => {
   const small = await call("POST", "/api/transactions", {
     type: "SALE",
     partyId: ids.customer,
@@ -200,10 +200,10 @@ test("payments: open bills come newest first with paid/due", async () => {
 
   const bills = await openSaleBills();
   assert.deepEqual(bills.map((b) => [b.totalAmount, b.paid, b.due]), [
-    [500, 0, 500], // newest first
-    [15000, 0, 15000],
+    [15000, 0, 15000], // oldest first
+    [500, 0, 500],
   ]);
-  ids.bigSale = bills[1].id;
+  ids.bigSale = bills[0].id;
 });
 
 test("payments: part payments over days reduce what is due", async () => {
@@ -228,7 +228,7 @@ test("payments: one payment split across two bills", async () => {
   assert.equal(res.status, 201, JSON.stringify(res.data));
   ids.splitPayment = res.data.id;
   const bills = await openSaleBills();
-  assert.deepEqual(bills.map((b) => b.due), [0, 11900]);
+  assert.deepEqual(bills.map((b) => b.due), [11900, 0]);
 });
 
 test("payments: rule violations are refused", async () => {
@@ -266,12 +266,12 @@ test("payments: deleting one re-opens the bills it paid", async () => {
   assert.equal(bills.find((b) => b.id === ids.bigSale)!.due, 12000);
 });
 
-test("payments: list newest first, filter by date and person", async () => {
+test("payments: list oldest first, filter by date and person", async () => {
   const all = await call("GET", "/api/payments?type=SALE");
   assert.deepEqual(all.data.summary, { count: 2, totalAmount: 3000 });
-  assert.deepEqual(all.data.payments.map((p: { amount: number }) => p.amount), [2000, 1000]); // today, then 2 Jan
-  assert.equal(all.data.payments[0].party.name, "Sita Stores");
-  assert.equal(all.data.payments[0].note, "cash");
+  assert.deepEqual(all.data.payments.map((p: { amount: number }) => p.amount), [1000, 2000]); // 2 Jan, then today
+  assert.equal(all.data.payments[1].party.name, "Sita Stores");
+  assert.equal(all.data.payments[1].note, "cash");
 
   const todayOnly = await call("GET", `/api/payments?type=SALE&from=${today}&to=${today}`);
   assert.equal(todayOnly.data.summary.count, 1);

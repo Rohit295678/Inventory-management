@@ -4,7 +4,7 @@ import { toISODate, type TxType } from "@/lib/domain";
 import { formatDate, formatMoney } from "@/lib/format";
 import { round2, toPaise } from "@/lib/pricing";
 import type { PaymentInput } from "@/lib/schemas";
-import { assertPartyFits, dateAndPartyWhere, DomainError, paidAndDue, type TxFilter } from "@/lib/transactions";
+import { assertPartyFits, dateAndPartyWhere, DomainError, OLDEST_FIRST, paidAndDue, type TxFilter } from "@/lib/transactions";
 import type { PaymentDTO, PaymentsResponse } from "@/lib/types";
 
 // Payments: money handed over in parts, each split across that person's open
@@ -14,7 +14,7 @@ const PAYMENT_INCLUDE = {
   party: { select: { id: true, name: true } },
   allocations: {
     include: { transaction: { select: { date: true, totalAmount: true } } },
-    orderBy: [{ transaction: { date: "desc" } }, { transaction: { createdAt: "desc" } }],
+    orderBy: [{ transaction: { date: "asc" } }, { transaction: { createdAt: "asc" } }],
   },
 } satisfies Prisma.PaymentInclude;
 
@@ -41,7 +41,7 @@ export async function listPayments(userId: string, f: TxFilter): Promise<Payment
   const rows = await prisma.payment.findMany({
     where: dateAndPartyWhere(userId, f),
     include: PAYMENT_INCLUDE,
-    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    orderBy: [...OLDEST_FIRST],
   });
   const payments = rows.map(toDTO);
   return {

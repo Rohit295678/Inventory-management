@@ -75,7 +75,7 @@ function LoadedForm({ type, parties, onSaved, onCancel }: Omit<Props, "parties">
   function fillOldestFirst() {
     let left = amountPaise;
     const next: Record<string, string> = {};
-    for (const bill of [...openBills].reverse()) {
+    for (const bill of openBills) {
       const take = Math.min(toPaise(bill.due), left);
       if (take > 0) next[bill.id] = rupees(take);
       left -= take;
@@ -161,7 +161,7 @@ function LoadedForm({ type, parties, onSaved, onCancel }: Omit<Props, "parties">
       {partyId && (
         <section aria-label="Unpaid bills" className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-800">Unpaid bills (newest first)</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Unpaid bills (oldest first)</h3>
             {openBills.length > 1 && (
               <button type="button" onClick={fillOldestFirst} disabled={amountPaise <= 0} className={buttonClass.secondary}>
                 Fill oldest bills first

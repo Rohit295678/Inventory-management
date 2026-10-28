@@ -25,7 +25,7 @@ export function filterQuery(type: TxType, range: Range, partyId: string): URLSea
   return query;
 }
 
-// Keeps the API's order (newest first) within and across days.
+// Keeps the API's order (oldest first) within and across days.
 export function groupByDate<T extends { date: string }>(list: ReadonlyArray<T>): [string, T[]][] {
   const groups = new Map<string, T[]>();
   for (const entry of list) groups.set(entry.date, [...(groups.get(entry.date) ?? []), entry]);

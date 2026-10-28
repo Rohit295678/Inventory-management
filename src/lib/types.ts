@@ -110,7 +110,7 @@ export type PaymentDTO = {
   amount: number;
   note: string | null;
   party: { id: string; name: string };
-  allocations: PaymentAllocationDTO[]; // newest bill first
+  allocations: PaymentAllocationDTO[]; // oldest bill first
 };
 
 export type PaymentsResponse = { payments: PaymentDTO[]; summary: { count: number; totalAmount: number } };

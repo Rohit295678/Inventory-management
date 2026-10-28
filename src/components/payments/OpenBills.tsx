@@ -5,7 +5,7 @@ import { isFullyPaid, SettleButton } from "@/components/payments/BillPaymentStat
 import { buttonClass, inputClass } from "@/components/ui/styles";
 
 type Props = {
-  bills: TransactionDTO[]; // open bills of one person, newest first (API order)
+  bills: TransactionDTO[]; // open bills of one person, oldest first (API order)
   verb: string; // Received | Paid
   allocations: Record<string, string>; // billId -> typed amount
   onAllocate: (billId: string, value: string) => void;
@@ -20,26 +20,37 @@ const itemNames = (bill: TransactionDTO) => [...new Set(bill.lines.map((l) => l.
 export function OpenBills({ bills, verb, allocations, onAllocate, onPayFull, canPayFull, onSettled }: Props) {
   return (
     <div className="space-y-2">
-      {bills.map((bill) => {
-        const legend = `Bill of ${formatDate(bill.date)} · ${formatMoney(bill.totalAmount)}`;
-        return (
-          <fieldset key={bill.id} className="rounded-2xl border border-line bg-canvas/60 p-3 sm:p-4">
-            <legend className="px-1 text-sm font-semibold text-brand-800">{legend}</legend>
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
-              <span className="text-slate-700 min-w-0 truncate">{itemNames(bill)}</span>
-              {isFullyPaid(bill) ? (
-                <span className="font-medium text-green-700">Fully paid</span>
-              ) : (
-                <span className="font-semibold text-red-700 whitespace-nowrap">Due {formatMoney(bill.due)}</span>
+      {bills.map((bill) => (
+        <fieldset key={bill.id} className="rounded-2xl border border-line bg-canvas/60 p-3 sm:p-4">
+          <legend className="px-1 text-sm font-semibold text-brand-800">{formatDate(bill.date)}</legend>
+          <div className="flex items-start justify-between gap-3 text-sm">
+            <div className="min-w-0">
+              <p className="text-slate-700 truncate">{itemNames(bill)}</p>
+              {bill.paid > 0 && (
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Already {verb.toLowerCase()} {formatMoney(bill.paid)}
+                </p>
               )}
             </div>
-            {bill.paid > 0 && (
-              <p className="text-xs text-slate-600 mt-0.5">
-                Already {verb.toLowerCase()} {formatMoney(bill.paid)}
-              </p>
-            )}
+            <dl className="text-right whitespace-nowrap">
+              <div>
+                <dt className="sr-only">Total</dt>
+                <dd className="text-slate-800">
+                  Total <span className="font-semibold">{formatMoney(bill.totalAmount)}</span>
+                </dd>
+              </div>
+              <div>
+                <dt className="sr-only">Due</dt>
+                {isFullyPaid(bill) ? (
+                  <dd className="font-medium text-green-700">Fully paid</dd>
+                ) : (
+                  <dd className="font-semibold text-red-700">Due {formatMoney(bill.due)}</dd>
+                )}
+              </div>
+            </dl>
+          </div>
 
-            {isFullyPaid(bill) ? (
+          {isFullyPaid(bill) ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <SettleButton bill={bill} onSettled={onSettled} />
               </div>
@@ -68,8 +79,7 @@ export function OpenBills({ bills, verb, allocations, onAllocate, onPayFull, can
               </div>
             )}
           </fieldset>
-        );
-      })}
+      ))}
     </div>
   );
 }

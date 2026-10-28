@@ -9,7 +9,7 @@ export async function OPTIONS() {
 }
 
 // GET /api/payments?type=SALE|PURCHASE&from=&to=&partyId=
-// -> { payments, summary: { count, totalAmount } }   (newest first)
+// -> { payments, summary: { count, totalAmount } }   (oldest first)
 export async function GET(req: Request) {
   const userId = await getUserId(req);
   if (!userId) return unauthorized();

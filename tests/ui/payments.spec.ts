@@ -41,11 +41,12 @@ test("payments received: pay in parts, settle, see it on sales", async ({ page }
 
   const bills = form.getByRole("group");
   await expect(bills).toHaveCount(2);
-  await expect(bills.nth(0)).toContainText("₹500.00"); // newest first
-  await expect(bills.nth(1)).toContainText("₹15,000.00");
+  await expect(bills.nth(0)).toContainText("Total ₹15,000.00"); // oldest first
+  await expect(bills.nth(1)).toContainText("Total ₹500.00");
+  await expect(bills.nth(0).locator("legend")).toHaveText(/^\d{2} \w{3} \d{4}$/); // just the date
   await expect(form.getByText("₹2,000.00 still to put on bills")).toBeVisible();
 
-  const bigBill = form.getByRole("group", { name: /₹15,000\.00/ });
+  const bigBill = bills.filter({ hasText: "Total ₹15,000.00" });
   await bigBill.getByRole("button", { name: "Pay full" }).click(); // takes what's left: 2,000 (not 15,000)
   await expect(bigBill.getByLabel("Amount for this bill")).toHaveValue("2000");
   await expect(form.getByText("Matches the amount")).toBeVisible();
@@ -61,7 +62,7 @@ test("payments received: pay in parts, settle, see it on sales", async ({ page }
   await form.getByLabel("Amount received (₹)").fill("13500");
   await form.getByRole("button", { name: "Fill oldest bills first" }).click();
   await expect(bigBill.getByLabel("Amount for this bill")).toHaveValue("13000");
-  await expect(form.getByRole("group", { name: /₹500\.00/ }).getByLabel("Amount for this bill")).toHaveValue("500");
+  await expect(bills.filter({ hasText: "Total ₹500.00" }).getByLabel("Amount for this bill")).toHaveValue("500");
   await form.getByRole("button", { name: "Save payment" }).click();
   await expect(page.getByRole("article", { name: "Sita Stores, ₹13,500.00" })).toBeVisible();
   await expect(tile(page, "Total received")).toHaveText("₹15,500.00"); // today's total
