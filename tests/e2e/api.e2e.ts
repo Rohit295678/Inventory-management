@@ -366,6 +366,24 @@ test("invoice PDF: one bill with letterhead, plain item names, payments and bala
   assert.equal((await call("GET", "/api/reports/bill?id=nope")).status, 404);
 });
 
+test("bill detail: bill + person's contact + shop, payments with notes", async () => {
+  const res = await call("GET", `/api/transactions/detail?id=${ids.bigSale}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.data.bill.id, ids.bigSale);
+  assert.deepEqual(Object.keys(res.data.party).sort(), ["address", "id", "name", "phone"]);
+  assert.equal(res.data.party.name, "Sita Stores");
+  assert.equal(res.data.shop.name, "Rohit Kirana Store");
+  assert.deepEqual(
+    res.data.bill.payments.map((p: { amount: number; note: string | null }) => [p.amount, p.note]),
+    [
+      [1000, null],
+      [2000, "cash"],
+    ]
+  );
+  assert.equal(res.data.bill.lines[0].itemType, "Rice");
+  assert.equal((await call("GET", "/api/transactions/detail?id=nope")).status, 404);
+});
+
 test("pdf: downloads a real PDF", async () => {
   const res = await call("GET", `/api/reports/pdf?type=PURCHASE&from=${today}&to=${today}`);
   assert.equal(res.status, 200);

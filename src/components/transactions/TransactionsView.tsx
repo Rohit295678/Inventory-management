@@ -1,12 +1,13 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
-import { api, errorMessage, useApi } from "@/lib/api-client";
+import { errorMessage, useApi } from "@/lib/api-client";
 import { ALL_TIME, filterQuery, groupByDate, todayRange } from "@/lib/date-filters";
 import { TX_COPY, partyKindsFor, type TxType } from "@/lib/domain";
 import { formatDate, formatDateRange, formatMoney } from "@/lib/format";
 import type { ItemDTO, PartyDTO, TransactionDTO, TransactionsResponse } from "@/lib/types";
+import { deleteBill } from "@/components/bills/delete-bill";
 import { SummaryPanel } from "@/components/transactions/SummaryPanel";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
@@ -32,15 +33,21 @@ export function TransactionsView({ type }: { type: TxType }) {
   const groups = useMemo(() => groupByDate(txs.data?.transactions ?? []), [txs.data]);
 
   async function remove(tx: TransactionDTO) {
-    if (!confirm(`Delete this ${copy.noun} from ${tx.party.name} (${formatMoney(tx.totalAmount)})?`)) return;
     try {
-      await api(`/api/transactions?id=${tx.id}`, { method: "DELETE" });
+      if (!(await deleteBill(tx))) return;
       txs.reload();
       items.reload();
     } catch (err) {
       setActionError(errorMessage(err));
     }
   }
+
+  // Bills open in a new tab; settling/deleting there shows up when you come back.
+  const { reload: reloadBills } = txs;
+  useEffect(() => {
+    window.addEventListener("focus", reloadBills);
+    return () => window.removeEventListener("focus", reloadBills);
+  }, [reloadBills]);
 
   const partyName = parties.data?.find((p) => p.id === partyId)?.name;
 

@@ -17,9 +17,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // print:* -> only the page content prints, flowing over as many pages as needed.
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="hidden lg:flex">
+    <div className="flex h-screen overflow-hidden print:block print:h-auto print:overflow-visible">
+      <div className="hidden lg:flex print:hidden">
         <Sidebar />
       </div>
 
@@ -32,8 +33,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="surface-dark lg:hidden flex items-center gap-2 px-2 py-2 bg-nav shrink-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden print:block print:overflow-visible">
+        <header className="surface-dark lg:hidden print:hidden flex items-center gap-2 px-2 py-2 bg-nav shrink-0">
           <button
             onClick={() => setOpen(true)}
             aria-label="Open menu"
@@ -45,7 +46,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <Logo tone="light" />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print:overflow-visible print:p-0">
           <div className="max-w-5xl mx-auto">{children}</div>
         </main>
       </div>

@@ -7,7 +7,9 @@ import { formatMoney } from "@/lib/format";
 import { toPaise } from "@/lib/pricing";
 import type { PartyDTO, TransactionDTO, TransactionsResponse } from "@/lib/types";
 import { OpenBills } from "@/components/payments/OpenBills";
+import { BillDetail } from "@/components/bills/BillDetail";
 import { Field } from "@/components/ui/Field";
+import { Modal } from "@/components/ui/Modal";
 import { Alert } from "@/components/ui/PageHeader";
 import { InlineLoading, Loading } from "@/components/ui/Spinner";
 import { buttonClass, cardClass, inputClass } from "@/components/ui/styles";
@@ -53,6 +55,7 @@ function LoadedForm({ type, parties, onSaved, onCancel }: Omit<Props, "parties">
   const [allocations, setAllocations] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [viewing, setViewing] = useState<TransactionDTO | null>(null); // bill shown in the pop-up
 
   const bills = useApi<TransactionsResponse>(partyId ? `/api/transactions?type=${type}&partyId=${partyId}&status=open` : null);
   const openBills = bills.data?.transactions ?? [];
@@ -181,9 +184,16 @@ function LoadedForm({ type, parties, onSaved, onCancel }: Omit<Props, "parties">
               onPayFull={payFull}
               canPayFull={amountPaise > 0}
               onSettled={bills.reload}
+              onView={setViewing}
             />
           )}
         </section>
+      )}
+
+      {viewing && (
+        <Modal title={`Bill of ${viewing.party.name}`} onClose={() => setViewing(null)}>
+          <BillDetail id={viewing.id} mode="modal" onChanged={bills.reload} onDeleted={() => setViewing(null)} />
+        </Modal>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">

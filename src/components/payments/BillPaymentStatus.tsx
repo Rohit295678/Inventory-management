@@ -2,13 +2,11 @@
 import { useState } from "react";
 import { BadgeCheck } from "lucide-react";
 import { api, errorMessage } from "@/lib/api-client";
+import { isFullyPaid } from "@/lib/bill-status";
 import { PAYMENT_COPY } from "@/lib/domain";
 import { formatDate, formatMoney } from "@/lib/format";
-import { toPaise } from "@/lib/pricing";
 import type { TransactionDTO } from "@/lib/types";
 import { buttonClass } from "@/components/ui/styles";
-
-export const isFullyPaid = (bill: Pick<TransactionDTO, "due">) => toPaise(bill.due) <= 0;
 
 // "Mark settled" for a fully paid bill: it then leaves the payments screen.
 // Used on bill cards and in the payment form's bill list.
@@ -31,7 +29,7 @@ export function SettleButton({ bill, onSettled }: { bill: TransactionDTO; onSett
 
   return (
     <>
-      <button type="button" onClick={settle} disabled={busy} className={buttonClass.secondary}>
+      <button type="button" onClick={settle} disabled={busy} className={`${buttonClass.secondary} relative z-10`}>
         <BadgeCheck className="w-4 h-4" aria-hidden="true" /> {busy ? "Settling…" : "Mark settled"}
       </button>
       {error && (

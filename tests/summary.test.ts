@@ -30,7 +30,7 @@ const tx = (id: string, partyId: string, lines: TransactionDTO["lines"], paid = 
     paid,
     due: totalAmount - paid,
     settledAt: null,
-    payments: paid ? [{ paymentId: `p-${id}`, date: "2026-10-26", amount: paid }] : [],
+    payments: paid ? [{ paymentId: `p-${id}`, date: "2026-10-26", amount: paid, note: null }] : [],
   };
 };
 

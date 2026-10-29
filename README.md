@@ -76,6 +76,7 @@ Every `/api/*` route accepts **either** the NextAuth cookie (web) **or**
 | GET/POST | `/api/parties[?kind=SUPPLIER\|CUSTOMER]` | `{ name, kind, phone?, address? }` |
 | PATCH/DELETE | `/api/parties?id=` | |
 | GET | `/api/transactions?type=&from=&to=&partyId=&status=open` | → `{ transactions, summary }`; each bill has `paid`, `due`, `settledAt`, `payments[]` (date + amount); `status=open` = not settled |
+| GET | `/api/transactions/detail?id=` | One bill for the bill page: `{ bill, party: { id, name, phone, address }, shop: { name, address, phone } }`; bill payments include their `note` |
 | POST | `/api/transactions` | `{ type, partyId, date, note?, lines: [{ itemId, quantity, weightPerUnitKg?, ratePerKg, lotRatePerKg? }] }`. Sales: `lotRatePerKg` picks the price lot to sell from (needed when 2+ are in stock); can't sell more than the lot holds |
 | PATCH | `/api/transactions?id=` | `{ settled: true\|false }`; settling needs the bill fully paid |
 | DELETE | `/api/transactions?id=` | 409 while payments sit on the bill |

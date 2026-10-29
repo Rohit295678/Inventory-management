@@ -1,7 +1,9 @@
 "use client";
+import { Eye } from "lucide-react";
+import { isFullyPaid } from "@/lib/bill-status";
 import { formatDate, formatMoney } from "@/lib/format";
 import type { TransactionDTO } from "@/lib/types";
-import { isFullyPaid, SettleButton } from "@/components/payments/BillPaymentStatus";
+import { SettleButton } from "@/components/payments/BillPaymentStatus";
 import { buttonClass, inputClass } from "@/components/ui/styles";
 
 type Props = {
@@ -12,12 +14,13 @@ type Props = {
   onPayFull: (bill: TransactionDTO) => void;
   canPayFull: boolean; // false until an amount is entered
   onSettled: () => void;
+  onView: (bill: TransactionDTO) => void; // open the bill in a pop-up
 };
 
 const itemNames = (bill: TransactionDTO) => [...new Set(bill.lines.map((l) => l.itemName))].join(", ");
 
 // A person's unpaid bills; type how much of this payment goes on each.
-export function OpenBills({ bills, verb, allocations, onAllocate, onPayFull, canPayFull, onSettled }: Props) {
+export function OpenBills({ bills, verb, allocations, onAllocate, onPayFull, canPayFull, onSettled, onView }: Props) {
   return (
     <div className="space-y-2">
       {bills.map((bill) => (
@@ -25,7 +28,16 @@ export function OpenBills({ bills, verb, allocations, onAllocate, onPayFull, can
           <legend className="px-1 text-sm font-semibold text-brand-800">{formatDate(bill.date)}</legend>
           <div className="flex items-start justify-between gap-3 text-sm">
             <div className="min-w-0">
-              <p className="text-slate-700 truncate">{itemNames(bill)}</p>
+              <button
+                type="button"
+                onClick={() => onView(bill)}
+                className="max-w-full inline-flex items-center gap-1.5 text-left font-medium text-brand-800 underline-offset-2 hover:underline"
+                aria-label={`View bill of ${formatDate(bill.date)}: ${itemNames(bill)}`}
+              >
+                <Eye className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span className="truncate">{itemNames(bill)}</span>
+                <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs">View bill</span>
+              </button>
               {bill.paid > 0 && (
                 <p className="text-xs text-slate-600 mt-0.5">
                   Already {verb.toLowerCase()} {formatMoney(bill.paid)}

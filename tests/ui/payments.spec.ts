@@ -63,6 +63,20 @@ test("payments received: pay in parts, settle, see it on sales", async ({ page }
   await expect(bigBill).toContainText("Due ₹13,000.00");
   await expect(bigBill).toContainText("Already received ₹2,000.00");
   await form.getByLabel("Amount received (₹)").fill("13500");
+
+  // Peek at a bill in a pop-up without losing what's typed
+  await bigBill.getByRole("button", { name: /View bill/ }).click();
+  const popup = page.getByRole("dialog", { name: "Bill of Sita Stores" });
+  await expect(popup.getByText("Sales invoice")).toBeVisible();
+  await expect(popup.getByText("Partly paid")).toBeVisible();
+  await expect(popup.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "13"); // 2,000 of 15,000
+  await expect(popup.getByRole("region", { name: "Payments" }).getByRole("listitem")).toHaveCount(1);
+  await expect(popup.getByRole("link", { name: "Open in new tab" })).toBeVisible();
+  await shot(page, "10-bill-popup");
+  await popup.getByRole("button", { name: "Close" }).click();
+  await expect(popup).toHaveCount(0);
+  await expect(form.getByLabel("Amount received (₹)")).toHaveValue("13500"); // still there
+
   await form.getByRole("button", { name: "Fill oldest bills first" }).click();
   await expect(bigBill.getByLabel("Amount for this bill")).toHaveValue("13000");
   await expect(bills.filter({ hasText: "Total ₹500.00" }).getByLabel("Amount for this bill")).toHaveValue("500");
@@ -100,4 +114,29 @@ test("payments received: pay in parts, settle, see it on sales", async ({ page }
   // A bill with payments can't be deleted
   await big.getByRole("button", { name: /Delete bill/ }).click();
   await expect(pageAlert(page)).toContainText("has payments");
+
+  // Tapping a bill opens it in full in a new tab
+  const [billTab] = await Promise.all([page.context().waitForEvent("page"), big.getByRole("link", { name: /Open bill: Sita Stores/ }).click()]);
+  billTab.on("dialog", (dialog) => dialog.accept());
+  const bill = billTab.getByRole("article", { name: /Bill: Sita Stores/ });
+  await expect(bill.getByText("Sales invoice")).toBeVisible();
+  await expect(bill.getByText("Settled", { exact: true }).first()).toBeVisible();
+  await expect(bill.getByRole("region", { name: "Payments" }).getByRole("listitem")).toHaveCount(2);
+  await expect(bill.getByRole("region", { name: "Bill to" })).toContainText("Sita Stores");
+  await expect(bill.getByText("Sona Rice")).toBeVisible();
+  await expect(bill.getByText("From stock bought @ ₹80.00/kg")).toBeVisible();
+  await expect(bill.getByRole("link", { name: "Download PDF" })).toHaveAttribute("href", /\/api\/reports\/bill\?id=/);
+  await expect(bill.getByRole("button", { name: "Print" })).toBeVisible();
+  await shot(billTab, "11-bill-page");
+  await bill.getByRole("button", { name: "Delete bill" }).click();
+  await expect(billTab.getByRole("main").getByRole("alert")).toContainText("has payments");
+  await billTab.close();
+
+  // Mark settled from the bill page too (the Rs 500 bill is fully paid)
+  const [smallTab] = await Promise.all([page.context().waitForEvent("page"), small.getByRole("link", { name: /Open bill: Sita Stores/ }).click()]);
+  smallTab.on("dialog", (dialog) => dialog.accept());
+  await smallTab.getByRole("button", { name: "Mark settled" }).click();
+  await expect(smallTab.getByText("Settled", { exact: true }).first()).toBeVisible();
+  await expect(smallTab.getByRole("button", { name: "Mark settled" })).toHaveCount(0);
+  await smallTab.close();
 });

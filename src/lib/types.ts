@@ -81,7 +81,7 @@ export type TransactionDTO = {
 };
 
 // One payment's share of a bill, as seen from the bill.
-export type BillPaymentDTO = { paymentId: string; date: string; amount: number };
+export type BillPaymentDTO = { paymentId: string; date: string; amount: number; note: string | null };
 
 export type ItemSummary = {
   itemId: string;
@@ -134,3 +134,10 @@ export type ShopDTO = { name: string | null; address: string | null; phone: stri
 
 // What a PDF prints at the top: the shop, or the user's name until it's set.
 export type Letterhead = { name: string; address: string | null; phone: string | null };
+
+// Everything the bill page / invoice shows about one bill.
+export type BillDetailDTO = {
+  bill: TransactionDTO;
+  party: { id: string; name: string; phone: string | null; address: string | null };
+  shop: Letterhead;
+};

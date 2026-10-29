@@ -6,7 +6,8 @@ import { getItemStats } from "@/lib/item-stats";
 import { LotError, pickLot } from "@/lib/lots";
 import { priceLine, round2, round3, sumTotals, toPaise, PricingError } from "@/lib/pricing";
 import type { TransactionInput } from "@/lib/schemas";
-import type { TransactionDTO } from "@/lib/types";
+import type { BillDetailDTO, TransactionDTO } from "@/lib/types";
+import { getLetterhead } from "@/lib/users";
 
 // Thrown for "your request makes no sense" cases; routes map it to a 4xx.
 export class DomainError extends Error {
@@ -60,7 +61,7 @@ const TX_INCLUDE = {
   party: { select: { id: true, name: true } },
   lines: { include: { item: { select: { name: true, type: { select: { name: true } } } } }, orderBy: { id: "asc" } },
   allocations: {
-    select: { amount: true, payment: { select: { id: true, date: true } } },
+    select: { amount: true, payment: { select: { id: true, date: true, note: true } } },
     orderBy: [{ payment: { date: "asc" } }, { payment: { createdAt: "asc" } }],
   },
 } satisfies Prisma.TransactionInclude;
@@ -82,7 +83,12 @@ function toDTO(tx: TxRow): TransactionDTO {
     totalAmount: tx.totalAmount,
     ...paidAndDue(tx.totalAmount, tx.allocations),
     settledAt: tx.settledAt?.toISOString() ?? null,
-    payments: tx.allocations.map((a) => ({ paymentId: a.payment.id, date: toISODate(a.payment.date), amount: a.amount })),
+    payments: tx.allocations.map((a) => ({
+      paymentId: a.payment.id,
+      date: toISODate(a.payment.date),
+      amount: a.amount,
+      note: a.payment.note,
+    })),
     party: tx.party,
     lines: tx.lines.map((l) => ({
       id: l.id,
@@ -112,6 +118,18 @@ export async function listTransactions(userId: string, f: TxFilter): Promise<Tra
 export async function getTransaction(userId: string, id: string): Promise<TransactionDTO | null> {
   const tx = await prisma.transaction.findFirst({ where: { id, userId }, include: TX_INCLUDE });
   return tx && toDTO(tx);
+}
+
+// One bill with the person's contact details and the shop letterhead:
+// the bill page and the invoice PDF show the same thing.
+export async function getBillDetail(userId: string, id: string): Promise<BillDetailDTO | null> {
+  const bill = await getTransaction(userId, id);
+  if (!bill) return null;
+  const [shop, party] = await Promise.all([
+    getLetterhead(userId),
+    prisma.party.findFirst({ where: { id: bill.party.id, userId }, select: { id: true, name: true, phone: true, address: true } }),
+  ]);
+  return { bill, shop, party: party ?? { ...bill.party, phone: null, address: null } };
 }
 
 export async function createTransaction(userId: string, input: TransactionInput): Promise<TransactionDTO> {

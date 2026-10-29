@@ -1,8 +1,8 @@
 import { jsPDF } from "jspdf";
 import { autoTable, type RowInput, type Styles } from "jspdf-autotable";
+import { BILL_STATUS_LABEL, billStatus, isClear } from "@/lib/bill-status";
 import { PAYMENT_COPY, TX_COPY, todayISO, type TxType } from "@/lib/domain";
 import { formatDate, formatKg, formatLineQty, formatMoney, formatQty } from "@/lib/format";
-import { toPaise } from "@/lib/pricing";
 import type { Letterhead, Summary, TransactionDTO } from "@/lib/types";
 
 // Server-side PDFs so web and mobile download the exact same documents:
@@ -102,8 +102,6 @@ function statusText(tx: TransactionDTO, verb: string): string {
   return `Nothing ${verb.toLowerCase()} yet \u00b7 Due ${rs(tx.due)}`;
 }
 
-const isClear = (tx: TransactionDTO) => Boolean(tx.settledAt) || toPaise(tx.due) <= 0;
-
 // ---- Invoice: one bill, ready to hand over or share.
 export type InvoiceInput = {
   tx: TransactionDTO;
@@ -132,7 +130,7 @@ export function buildInvoicePdf({ tx, shop, party }: InvoiceInput): ArrayBuffer 
     ...(party.phone ? [`Phone: ${party.phone}`] : []),
     ...(party.address ? (doc.splitTextToSize(party.address, half - 30) as string[]) : []),
   ];
-  const status = tx.settledAt ? "Settled" : isClear(tx) ? "Paid in full" : tx.paid ? "Partly paid" : "Unpaid";
+  const status = BILL_STATUS_LABEL[billStatus(tx)];
   const details: [string, string][] = [
     ["Date", formatDate(tx.date)],
     ["Status", status],
