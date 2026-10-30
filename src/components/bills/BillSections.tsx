@@ -35,8 +35,9 @@ function Contact({ label, name, phone, address }: { label: string } & Letterhead
 
 export function BillParties({ detail }: { detail: BillDetailDTO }) {
   const sale = detail.bill.type === "SALE";
-  const shop = <Contact label="From (your shop)" {...detail.shop} />;
-  const party = <Contact label={sale ? "Bill to" : "Bill from"} {...detail.party} />;
+  const { name, phone, address } = detail.party;
+  const shop = <Contact key="shop" label="From (your shop)" {...detail.shop} />;
+  const party = <Contact key="party" label={sale ? "Bill to" : "Bill from"} name={name} phone={phone} address={address} />;
   // Invoices read seller -> buyer: on a purchase the supplier is the seller.
   return <div className="grid gap-3 sm:grid-cols-2">{sale ? [shop, party] : [party, shop]}</div>;
 }
