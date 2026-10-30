@@ -75,6 +75,11 @@ test("payments received: pay in parts, settle, see it on sales", async ({ page }
   await shot(page, "10-bill-popup");
   await popup.getByRole("button", { name: "Close" }).click();
   await expect(popup).toHaveCount(0);
+  // ...and Esc closes it too (handled via the dialog's cancel event)
+  await bigBill.getByRole("button", { name: /View bill/ }).click();
+  await expect(popup.getByText("Sales invoice")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
   await expect(form.getByLabel("Amount received (₹)")).toHaveValue("13500"); // still there
 
   await form.getByRole("button", { name: "Fill oldest bills first" }).click();
